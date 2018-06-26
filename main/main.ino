@@ -10,6 +10,7 @@ void setup()
 	// Starts the Serial port for debugging
 	Serial.begin(9600);
 
+	// Start the GSM modem
   gsm = new GSM(2, 3);
 
 	// Starts the temperature sensor
@@ -26,12 +27,18 @@ void setup()
 			Serial.println("Startup Successful");
 		}
 	}
+	
+	// Delete GSM object to save memory
+	delete gsm;
 }
 
 void loop()
 {
 	// Wait for the sensor
 	delay(2000);
+	
+	// Start the GSM modem again
+	gsm = new GSM(2, 3);
 
 	// Read the temperature and assign it to the GSM modem
 	float t = dht.readTemperature();
@@ -47,4 +54,7 @@ void loop()
 	{
 		Serial.println("Temperature Posted Successfully");
 	}
+	
+	// Delete GSM object to save memory
+	delete gsm;
 }
