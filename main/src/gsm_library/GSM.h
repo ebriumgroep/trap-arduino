@@ -51,6 +51,7 @@ public:
 		bool start();				// Done		
 		bool postRequest();			// Done
 		int hash(String);			// Hashes a String using a ASCII addition and Mid-Square method
+		// Should inplement an read GSM method
 
 		// Constructor and Destructor
 		GSM(int, int);				// Done
