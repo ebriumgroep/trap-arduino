@@ -44,17 +44,17 @@ private:
 
 public:
 		// Setter Methods
-		void setAddress(String);	// Done
-		void setMessage(String);	// Done
-		int hash(String);		// Hashes a String using a ASCII addition and Mid-Square method
+		void setAddress(String);		// Done
+		void setMessage(String);		// Done
 
 		// Control Methods
-		bool start();
-		bool postRequest();
+		bool start();				// Done		
+		bool postRequest();			// Done
+		int hash(String);			// Hashes a String using a ASCII addition and Mid-Square method
 
 		// Constructor and Destructor
 		GSM(int, int);				// Done
-		~GSM();						// Done
+		~GSM();					// Done
 };
 
 #endif

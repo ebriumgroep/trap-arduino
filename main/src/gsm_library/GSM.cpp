@@ -38,6 +38,9 @@ GSM::GSM(int tx, int rx)
 
 	// For Debugging
 	Serial.begin(9600);
+	
+	// Turn the GSM modem on
+	gsmOn();
 }
 
 //Destructor
@@ -240,19 +243,19 @@ int GSM::check(char ret[])
 
 int GSM::hash(String text)
 {
-	if (int(text[0]) < 2) // infinite loop on an Arduino would take even longer
-	    return 0;
 	long int sum = 0, key = 0;
-	int length = 0;
+	int count = 0, length = 0;
 	for (int i = 0; i < text.length(); ++i) // adds the ASCII value for each letter to sum
 		sum += int(text[i]); // gets ASCII value of letter
-	while (key < 100) // ensures key is at least 3 characters long
+	while (key < 100 && count++ < 3) // ensures key is at least 3 characters long with no infinite loop
 		key = sum = sum * sum; // squares the sum
 	for(; sum != 0; sum /= 10, ++length); // gets the length of the squared sum
 	char *sKey = new char[3];
 	for (int i = 0; i < 3; ++i)
 		sKey[i] = String(key)[((length/2) - 1) + i]; // gets the middle three characters
-	return atoi(sKey); // returns an int between 100 and 999
+	int ret = atoi(sKey); // converts char array to int
+	delete [] sKey;
+	return ret; // returns an int between 100 and 999
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
