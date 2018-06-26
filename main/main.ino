@@ -35,7 +35,7 @@ void setup()
 	// Starts the Serial connection for debugging
 	Serial.begin(9600);
 
-  // Points the GSM pointer to the GSM object
+  // Start the GSM Modem
   gsm = new GSM(2, 3);
 
   // Initialises the input pins
@@ -55,10 +55,12 @@ void setup()
 			Serial.println("Startup Successful");
 		}
 	}
+ delete gsm;
 }
 
 void loop()
 { 
+  
   // The current minute for debugging
   Serial.println(String("Current Minute: ")+String(minute()));
   
@@ -122,6 +124,9 @@ void loop()
     case TRANSMITTING:
     {
       Serial.println("TRANSMITTING");
+
+      // Start the GSM modem again
+      gsm = new GSM(2, 3);
       
       // This will be in an while loop reading from the entries in the files.
       String data = "test data";
@@ -144,6 +149,10 @@ void loop()
           control = TRANSMITTING;
         }
       }
+      
+      // Delete GSM object to save memory
+      delete gsm;
+      
       break;     
     }
   }
