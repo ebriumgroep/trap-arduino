@@ -3,7 +3,7 @@
 #include "src/gsm_library/GSM.h"    // GSM Modem
 #include "src/time_library/Time.h"  // Time
 
-#include "src/tex_library/TEX.h"    // For text files. Under development
+#include "src/tex_library/TEX.h"    // For text files. (Under development)
 
 GSM *gsm;
 DHT dht(4, 22);
@@ -93,13 +93,14 @@ void loop()
   // Execute the tasks
   switch(control)
   {
+    // False Codling Moths Sensor
     case SENSING_GENR:  
     {
       bool state = false;
       state = digitalRead(SENSOR);
       if(state)
       {
-        Serial.println("A");    // -> To File
+        Serial.println("found");    // -> Save the state to file (See the Design Requirement Manual)
         delay(2000);
       }
       delay(1000);
@@ -111,7 +112,7 @@ void loop()
       float t = dht.readTemperature();
       float h = dht.readHumidity();
 
-      Serial.println(String(t)+String(",")+String(h));
+      Serial.println(String(t)+String(",")+String(h));  // -> Save the state to file (See the Design Requirement Manual)
       
       control = SENSING_GENR;
       break;
@@ -128,9 +129,8 @@ void loop()
         // Starts the GSM modem
         if (gsm->start())
         {
-          // Initialize the test post address and message. This may be changed throughout the run of the program in the void loop function.
           gsm->setAddress("http://erbium.requestcatcher.com/test");
-          gsm->setMessage(String("Test Data"));
+          gsm->setMessage(String("Test Data")); // -> This should be read from the textfiles saved earlier (See the Design Requirement Manual)
           *started = true;
         }
       }
