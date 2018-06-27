@@ -14,7 +14,6 @@ https://github.com/ebriumgroep/trap-arduino
 #include <Arduino.h>
 #include <SD.h>
 #include <SPI.h>
-#include <String.h>
 
 class TEXTFILE_W
 {
