@@ -25,42 +25,45 @@ int start = day();
 
 // This should all be dynamically allocated in the setup function from the settings textfile
 // Only for current testing purposes
-int arrReadTemp[] = {1, 2, 3, 4, 5};
+int arrReadTemp[] = {2, 4, 5, 6, 7};
 int arrReadCount[] = {0, 0, 0, 0, 0};
-int arrTransData[] = {10};
-int arrTransCount[] = {0};
+int arrTransData[] = {1, 3};
+int arrTransCount[] = {0, 0};
 
 void setup()
 {
-	// Starts the Serial connection for debugging
-	Serial.begin(9600);
+  // Starts the Serial connection for debugging
+  Serial.begin(9600);
+  
+  // Starts the temperature sensor
+  dht.begin();
+  
+  // Initialises the input pins
+  pinMode(SENSOR, INPUT);
 
   // Start the GSM Modem
   gsm = new GSM(2, 3);
 
-  // Initialises the input pins
-  pinMode(SENSOR, INPUT);
-
-	// Starts the temperature sensor
-	dht.begin();
-
-	// Starts the GSM modem
-	if (gsm->start())
-	{
-		// Initialize the test post address and message. This may be changed throughout the run of the program in the void loop function.
-		gsm->setAddress("http://erbium.requestcatcher.com/test");
-		gsm->setMessage("Everything is Working");
-		if (gsm->postRequest())
-		{
-			Serial.println("Startup Successful");
-		}
-	}
- delete gsm;
+  bool started = false;
+  while(!started)
+  {
+  	 // Starts the GSM modem
+  	 if (gsm->start())
+  	 {
+  		 // Initialize the test post address and message. This may be changed throughout the run of the program in the void loop function.
+  		 gsm->setAddress("http://erbium.requestcatcher.com/test");
+  		 gsm->setMessage("Everything is Working");
+  		 if (gsm->postRequest())
+  		 {
+         started = true;
+  		 }
+  	 }
+  }
+  delete gsm;
 }
 
 void loop()
 { 
-  
   // The current minute for debugging
   Serial.println(String("Current Minute: ")+String(minute()));
   
@@ -77,7 +80,7 @@ void loop()
   }
 
   // Is it time to transmit data
-  for(int a=0; a<1; a++)
+  for(int a=0; a<2; a++)
   {
     if((minute() == arrTransData[a]) and (arrTransCount[a] == 0))
     {
@@ -127,12 +130,23 @@ void loop()
 
       // Start the GSM modem again
       gsm = new GSM(2, 3);
-      
+
       // This will be in an while loop reading from the entries in the files.
       String data = "test data";
       int hash = gsm->hash(data);
-
-      gsm->setMessage(String(hash)+String(",")+String(data));
+      
+      bool started = false;
+      while(!started)
+      {
+        // Starts the GSM modem
+        if (gsm->start())
+        {
+          // Initialize the test post address and message. This may be changed throughout the run of the program in the void loop function.
+          gsm->setAddress("http://erbium.requestcatcher.com/test");
+          gsm->setMessage(String(hash)+String(",")+String(data));
+          started = true;
+        }
+      }
 
       // Use the GSM modem to post the temperature to the server
       if (gsm->postRequest())
@@ -149,10 +163,13 @@ void loop()
           control = TRANSMITTING;
         }
       }
-      
+      else
+      {
+        Serial.println("Something went wrong in transmission, trying again");
+        control = TRANSMITTING;  
+      }
       // Delete GSM object to save memory
       delete gsm;
-      
       break;     
     }
   }
