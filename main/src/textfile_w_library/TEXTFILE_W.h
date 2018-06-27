@@ -12,10 +12,8 @@ https://github.com/ebriumgroep/trap-arduino
 
 #include "TEXTFILE_W.h"
 #include <Arduino.h>
-#include <SoftwareSerial.h>
 #include <SD.h>
 #include <SPI.h>
-#include <String.h>
 
 class TEXTFILE_W
 {
@@ -38,7 +36,7 @@ class TEXTFILE_W
 		void changePath(String);
 		String getPath();
 		String getFullPath();
-}
+};
 
 #endif
 
