@@ -2,8 +2,8 @@
 #include "src/dht_library/DHT.h"    // Temperature and Humidity Sensor
 #include "src/gsm_library/GSM.h"    // GSM Modem
 
-// Import Temprorary Standard Libraries
-#include <Time.h>
+// Import Temporary Standard Libraries
+#include "src/time_library/Time.h"
 
 GSM *gsm;
 DHT dht(4, 22);
@@ -17,7 +17,7 @@ enum state
 };
 state control = SENSING_GENR;
 
-// Sensorr Constants
+// Sensor Constants
 const int SENSOR = 6;
 
 // Variables
@@ -151,7 +151,7 @@ void loop()
       // Use the GSM modem to post the temperature to the server
       if (gsm->postRequest())
       {
-        // Reads the returned data from the post request to determine if the transmission was sucsessfull
+        // Reads the returned data from the post request to determine if the transmission was successful
         if(true)
         {
           Serial.println("Data Successfully Transmitted");

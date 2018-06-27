@@ -31,8 +31,8 @@ class TEXTFILE_W
 		bool append(String);
 
 		//Get and Set functions
-		void changeName(String);
-		String getName();
+		void changeFileName(String);
+		String getFileName();
 		void changePath(String);
 		String getPath();
 		String getFullPath();
