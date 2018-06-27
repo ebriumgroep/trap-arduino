@@ -14,6 +14,7 @@ https://github.com/ebriumgroep/trap-arduino
 #include <Arduino.h>
 #include <SD.h>
 #include <SPI.h>
+#include <String.h>
 
 class TEXTFILE_W
 {
@@ -31,8 +32,8 @@ class TEXTFILE_W
 		bool append(String);
 
 		//Get and Set functions
-		void changeName(String);
-		String getName();
+		void changeFileName(String);
+		String getFileName();
 		void changePath(String);
 		String getPath();
 		String getFullPath();

@@ -11,19 +11,19 @@ https://github.com/ebriumgroep/trap-arduino
 
 TEXTFILE_W::TEXTFILE_W (String n)
 {
-	name = n;
+	fileName = n;
 	path = "";
 }
 
 TEXTFILE_W::TEXTFILE_W (String n, String p)
 {
-	name = n;
+	fileName = n;
 	path = p;
 }
 
 bool TEXTFILE_W::write(String e)
 {
-	dataFile = SD.open(p + name, FILE_WRITE); //Open file in writing mode or create file if not existing
+	dataFile = SD.open(path + fileName, FILE_WRITE); //Open file in writing mode or create file if not existing
 	if (!dataFile)
 	{
 		return false; //Error with creating file or opening file
@@ -35,24 +35,24 @@ bool TEXTFILE_W::write(String e)
 
 bool TEXTFILE_W::append(String e)
 {
-	dataFile = SD.open(p + name, O_RDWR | O_APPEND); //Open file in append mode
+	dataFile = SD.open(path + fileName, O_RDWR | O_APPEND); //Open file in append mode
 	if (!dataFile)
 	{
-		return write(e); //Standard writing fuction is called 
+		return write(e); //Standard writing function is called 
 	}
 	dataFile.println(e); //Write line of text
 	dataFile.close();
 	return true;
 }
 
-void TEXTFILE_W::changeName(String n)
+void TEXTFILE_W::changeFileName(String n)
 {
-	name = n;
+	fileName = n;
 }
 
-String TEXTFILE_W::getName()
+String TEXTFILE_W::getFileName()
 {
-	return name;
+	return fileName;
 }
 
 void TEXTFILE_W::changePath(String p)
@@ -67,5 +67,5 @@ String TEXTFILE_W::getPath()
 
 String TEXTFILE_W::getFullPath()
 {
-	return path + name;
+	return path + fileName;
 }
