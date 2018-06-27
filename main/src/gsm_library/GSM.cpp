@@ -21,7 +21,8 @@ void GSM::setAddress(String ad)
 
 void GSM::setMessage(String me)
 {
-	message = me;
+	int ha = hash(me);
+	message = String(ha)+String(",")+String(me);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,12 +33,6 @@ GSM::GSM(int tx, int rx)
 	// Create and initialize the modem object
 	Modem = new SoftwareSerial(tx, rx);
 	Modem->begin(9600);
-
-	// Pin modes
-	pinMode(7, OUTPUT);
-
-	// For Debugging
-	Serial.begin(9600);
 	
 	// Turn the GSM modem on
 	gsmOn();
@@ -47,6 +42,7 @@ GSM::GSM(int tx, int rx)
 GSM::~GSM()
 {
 	gsmOff();
+	delete Modem;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -139,7 +135,7 @@ bool GSM::execute(int set[])
 		{
 			break;
 		}
-		delete[] output;
+		//delete [] output;
 	}
 	return fine;
 }
@@ -190,7 +186,7 @@ void GSM::gsmOn()
 		digitalWrite(7, HIGH);
 		delay(1000); // 800 also works, but 1000 is safe
 		digitalWrite(7, LOW);
-		delay(10000); // 9 seconds also works, but 10 is safe
+		delay(5000);
 	}
 }
 
@@ -201,7 +197,7 @@ void GSM::gsmOff()
 		digitalWrite(7, HIGH);
 		delay(1000); // 800 also works, but 1000 is safe
 		digitalWrite(7, LOW);
-		delay(2000); // wait until shutdown is done
+		delay(5000);
 	}
 }
 
@@ -214,11 +210,17 @@ int GSM::check(char ret[])
 	{
 		// SMS MESSAGE
 		if (ret[a] == '>')
+		{
+			delete [] ret;
 			return -1;
+		}
 		// OK MESSAGE
 		if (ret[a] == 'O')
 			if (ret[a + 1] == 'K')
+			{
+				delete [] ret;
 				return -1;
+			}
 		// CONNECT MESSAGE
 		if (ret[a] == 'C')
 			if (ret[a + 1] == 'O')
@@ -227,7 +229,10 @@ int GSM::check(char ret[])
 						if (ret[a + 4] == 'E')
 							if (ret[a + 5] == 'C')
 								if (ret[a + 6] == 'T')
+								{
+									delete [] ret;
 									return -1;
+								}
 		// CME ERROR
 		if (ret[a] == 'C')
 			if (ret[a + 1] == 'M')
@@ -238,6 +243,7 @@ int GSM::check(char ret[])
 							err[i - a] = ret[11 + i];
 					}
 	}
+	delete [] ret;
 	return atoi(err);
 }
 
