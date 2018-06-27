@@ -1,9 +1,9 @@
 //Import our Libraries
 #include "src/dht_library/DHT.h"    // Temperature and Humidity Sensor
 #include "src/gsm_library/GSM.h"    // GSM Modem
+#include "src/time_library/Time.h"  // Time
 
-// Import Temporary Standard Libraries
-#include "src/time_library/Time.h"
+#include "src/tex_library/TEX.h"    // For text files. Under development
 
 GSM *gsm;
 DHT dht(4, 22);
@@ -17,18 +17,18 @@ enum state
 };
 state control = SENSING_GENR;
 
-// Sensor Constants
-const int SENSOR = 6;
-
-// Variables
-int start = day();
+// Sensor Constants and Variables
+const int SENSOR = 6, AMODEM = 7;
 
 // This should all be dynamically allocated in the setup function from the settings textfile
 // Only for current testing purposes
-int arrReadTemp[] = {2, 4, 5, 6, 7};
-int arrReadCount[] = {0, 0, 0, 0, 0};
-int arrTransData[] = {1, 3};
-int arrTransCount[] = {0, 0};
+int arrReadT[] =  {2, 4, 6, 8, 10};
+int arrReadC[] =  {0, 0, 0, 0, 0 };
+int arrTranD[] =  {1, 3, 5, 7, 9 };
+int arrTranC[] =  {0, 0, 0, 0, 0 };
+
+// Pointers
+int *start;
 
 void setup()
 {
@@ -40,53 +40,52 @@ void setup()
   
   // Initialises the input pins
   pinMode(SENSOR, INPUT);
+  pinMode(AMODEM, OUTPUT);
 
-  // Start the GSM Modem
+  // Initialises the day it was started
+  start = new int;
+  *start = day();
+
+  // Sends an test signal on startup
   gsm = new GSM(2, 3);
-
-  bool started = false;
-  while(!started)
+  bool *started = new bool;
+  *started = false;
+  while(!(*started))
   {
-  	 // Starts the GSM modem
   	 if (gsm->start())
   	 {
-  		 // Initialize the test post address and message. This may be changed throughout the run of the program in the void loop function.
   		 gsm->setAddress("http://erbium.requestcatcher.com/test");
   		 gsm->setMessage("Everything is Working");
   		 if (gsm->postRequest())
   		 {
-         started = true;
+         *started = true;
   		 }
   	 }
   }
+  delete started;
   delete gsm;
 }
 
 void loop()
-{ 
-  // The current minute for debugging
-  Serial.println(String("Current Minute: ")+String(minute()));
-  
+{     
   // Is it time to sense for temperature
   for(int a=0; a<5; a++)
   {
-    if((minute() == arrReadTemp[a]) and (arrReadCount[a] == 0))
+    if((minute() == arrReadT[a]) and (arrReadC[a] == 0))
     {
-      Serial.println("T&H Active");
       control = SENSING_TEMP;
-      arrReadCount[a] = 1;
+      arrReadC[a] = 1;
       break;  
     }
   }
 
   // Is it time to transmit data
-  for(int a=0; a<2; a++)
+  for(int a=0; a<5; a++)
   {
-    if((minute() == arrTransData[a]) and (arrTransCount[a] == 0))
+    if((minute() == arrTranD[a]) and (arrTranC[a] == 0))
     {
-      Serial.println("Transmit Active");
       control = TRANSMITTING;
-      arrTransCount[a] = 1;
+      arrTranC[a] = 1;
       break;
     }
   }
@@ -96,97 +95,70 @@ void loop()
   {
     case SENSING_GENR:  
     {
-      Serial.println("SENSING_GENR");
-      
       bool state = false;
       state = digitalRead(SENSOR);
       if(state)
       {
+        Serial.println("A");    // -> To File
         delay(2000);
-        // -> To Text File 
       }
-
-      // Delay the sensor for debugging
       delay(1000);
-      
       break;
     }
     case SENSING_TEMP:
     {
-      Serial.println("SENSING_TEMP");
-      
       // Read the temperature/humidity and assign it to the GSM modem
       float t = dht.readTemperature();
       float h = dht.readHumidity();
-      
-      // -> To Text File
+
+      Serial.println(String(t)+String(",")+String(h));
       
       control = SENSING_GENR;
       break;
     }
     case TRANSMITTING:
     {
-      Serial.println("TRANSMITTING");
-
       // Start the GSM modem again
       gsm = new GSM(2, 3);
-
-      // This will be in an while loop reading from the entries in the files.
-      String data = "test data";
-      int hash = gsm->hash(data);
       
-      bool started = false;
-      while(!started)
+      bool *started = new bool;
+      *started = false;
+      while(!(*started))
       {
         // Starts the GSM modem
         if (gsm->start())
         {
           // Initialize the test post address and message. This may be changed throughout the run of the program in the void loop function.
           gsm->setAddress("http://erbium.requestcatcher.com/test");
-          gsm->setMessage(String(hash)+String(",")+String(data));
-          started = true;
+          gsm->setMessage(String("Test Data"));
+          *started = true;
         }
       }
-
       // Use the GSM modem to post the temperature to the server
       if (gsm->postRequest())
       {
         // Reads the returned data from the post request to determine if the transmission was successful
         if(true)
-        {
-          Serial.println("Data Successfully Transmitted");
           control = SENSING_GENR;
-        }
         else
-        {
-          Serial.println("Something went wrong in transmission, trying again");
           control = TRANSMITTING;
-        }
       }
       else
-      {
-        Serial.println("Something went wrong in transmission, trying again");
-        control = TRANSMITTING;  
-      }
+        control = TRANSMITTING; 
+         
       // Delete GSM object to save memory
+      delete started;
       delete gsm;
       break;     
     }
   }
 
   if(day() != start)
-  {
-    
-    Serial.println("Counters Reset");
-    
+  {   
     start = day();
     for(int a=0; a<5; a++)
-    {
-      arrReadCount[a] = 0;
-    }
+      arrReadC[a] = 0;
     for(int a=0; a<1; a++)
-    {
-      arrTransCount[a] = 0;
-    }
+      arrTranC[a] = 0;
   }
 }
