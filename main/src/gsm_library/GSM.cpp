@@ -135,7 +135,6 @@ bool GSM::execute(int set[])
 		{
 			break;
 		}
-		//delete [] output;
 	}
 	return fine;
 }
