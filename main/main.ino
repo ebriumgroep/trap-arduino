@@ -29,7 +29,8 @@ int arrTranC[] =  {0, 0, 0, 0, 0 };
 
 // Pointers
 int *start;
-
+unsigned long *filePos = new unsigned long;
+TEX *dataFile = new TEX("data.txt");
 void setup()
 {
   // Starts the Serial connection for debugging
@@ -45,7 +46,7 @@ void setup()
   // Initialises the day it was started
   start = new int;
   *start = day();
-
+  *filePos = 0;
   // Sends an test signal on startup
   gsm = new GSM(2, 3);
   bool *started = new bool;
@@ -131,6 +132,18 @@ void loop()
         {
           gsm->setAddress("http://erbium.requestcatcher.com/test");
           gsm->setMessage(String("Test Data")); // -> This should be read from the textfiles saved earlier (See the Design Requirement Manual)
+          dataFile->openRM();
+          bool success = dataFile->seek(*filePos);
+          if (success)
+          {
+            gsm->setMessage(dataFile->readln());
+          }
+          else
+          {
+            gsm->setMessage("Text File reading error");
+          }
+          *filePos = dataFile->position();
+          dataFile->closeRM();
           *started = true;
         }
       }
@@ -149,6 +162,7 @@ void loop()
       // Delete GSM object to save memory
       delete started;
       delete gsm;
+      //delete dataFile;
       break;     
     }
   }
