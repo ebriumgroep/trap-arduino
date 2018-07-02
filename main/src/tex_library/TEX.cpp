@@ -80,6 +80,16 @@ void TEX::closeRM()
 	dataFile.close();
 }
 
+unsigned long TEX::position()
+{
+	return dataFile.position();
+}
+
+bool TEX::seek(unsigned long p)
+{
+	return dataFile.seek(p);
+}
+
 void TEX::changeFileName(String n)
 {
 	fileName = n;

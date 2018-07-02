@@ -12,8 +12,6 @@ https://github.com/ebriumgroep/trap-arduino
 
 #include "TEX.h"
 #include <SD.h>
-#include <SPI.h>
-#include <SoftwareSerial.h>
 
 class TEX
 {
@@ -32,6 +30,9 @@ class TEX
 		bool openRM();
 		String readln();
 		void closeRM();
+		unsigned long position();
+		bool seek(unsigned long p);
+
 		//Get and Set functions
 		void changeFileName(String);
 		String getFileName();
