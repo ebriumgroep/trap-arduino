@@ -45,6 +45,41 @@ bool TEX::append(String e)
 	return true;
 }
 
+bool TEX::openRM()
+{
+	dataFile = SD.open(path + fileName);
+	if (dataFile)
+	{
+		return true;
+	}
+	return false;
+}
+
+String TEX::readln()
+{
+	//Reading text characters in a char array 
+	char line[100];
+	line[0] = dataFile.read();
+	int count = 1;
+	while(line[count - 1] != '\n')
+	{
+      line[count] = dataFile.read();
+      count++;
+  	}
+  	//Converting char array to String var
+  	String finalLine = "";
+  	for (int i = 0; i < count; i++)
+  	{
+  		finalLine += line[i]; 
+  	}
+  	return finalLine;
+}
+
+void TEX::closeRM()
+{
+	dataFile.close();
+}
+
 void TEX::changeFileName(String n)
 {
 	fileName = n;

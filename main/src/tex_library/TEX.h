@@ -13,6 +13,7 @@ https://github.com/ebriumgroep/trap-arduino
 #include "TEX.h"
 #include <SD.h>
 #include <SPI.h>
+#include <SoftwareSerial.h>
 
 class TEX
 {
@@ -28,7 +29,9 @@ class TEX
 		//Operating functions
 		bool write(String);
 		bool append(String);
-
+		bool openRM();
+		String readln();
+		void closeRM();
 		//Get and Set functions
 		void changeFileName(String);
 		String getFileName();
