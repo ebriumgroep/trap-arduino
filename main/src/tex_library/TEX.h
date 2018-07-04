@@ -27,6 +27,7 @@ class TEX
 		//Operating functions
 		bool write(String);
 		bool append(String);
+		bool markLineAsRed(int);
 		bool openRM();
 		String readln();
 		void closeRM();

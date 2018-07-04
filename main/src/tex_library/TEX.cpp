@@ -45,6 +45,18 @@ bool TEX::append(String e)
 	return true;
 }
 
+bool TEX::markLineAsRed(int p)
+{
+	dataFile = SD.open(path + fileName, FILE_WRITE); //Open file in writing mode or create file if not existing
+	if (!dataFile)
+	{
+		return false; //Error with creating file or opening file
+	}
+	dataFile.print('~'); //Write line of text
+	dataFile.close();
+	return true;
+}
+
 bool TEX::openRM()
 {
 	dataFile = SD.open(path + fileName);
@@ -58,14 +70,31 @@ bool TEX::openRM()
 String TEX::readln()
 {
 	//Reading text characters in a char array 
-	char line[100];
+	char line[64]; 
+	unsigned long prePos = position(), postPos;
 	line[0] = dataFile.read();
 	int count = 1;
-	while(line[count - 1] != '\n')
+	while(count < 64 && line[count - 1] != '\n')
 	{
       line[count] = dataFile.read();
       count++;
   	}
+  	postPos = position();
+  	// Check if line has already been red
+  	if (line[0] == '~')
+  	{
+  		return "~";
+  	}
+
+  	//Mark line as red
+  	closeRM();
+  	markLineAsRed(prePos);
+  	postPos++; //Because of mark data would have shifted up 1 position
+
+  	//Get position to where it was when line was red
+  	openRM();
+  	seek(postPos);
+
   	//Converting char array to String var
   	String finalLine = "";
   	for (int i = 0; i < count; i++)
