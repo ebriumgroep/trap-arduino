@@ -29,8 +29,8 @@ int arrTranC[] =  {0, 0, 0, 0, 0 };
 
 // Pointers
 int *start;
-unsigned long *filePos = new unsigned long;
-TEX *dataFile = new TEX("data.txt");
+TEX *THFile = new TEX("THFile.txt");
+TEX *mothCountFile = new TEX("MotCountFile.txt");
 void setup()
 {
   // Starts the Serial connection for debugging
@@ -46,7 +46,6 @@ void setup()
   // Initialises the day it was started
   start = new int;
   *start = day();
-  *filePos = 0;
   // Sends an test signal on startup
   gsm = new GSM(2, 3);
   bool *started = new bool;
@@ -102,6 +101,7 @@ void loop()
       if(state)
       {
         Serial.println("found");    // -> Save the state to file (See the Design Requirement Manual)
+        mothCountFile->append(String(year()) + "/" + String(month()) + "/" + String(day()) + "," + String(hour()) + ":" + String(minute()) + "," + "1");
         delay(2000);
       }
       delay(1000);
@@ -114,6 +114,7 @@ void loop()
       float h = dht.readHumidity();
 
       Serial.println(String(t)+String(",")+String(h));  // -> Save the state to file (See the Design Requirement Manual)
+      THFile->append(String(year()) + "/" + String(month()) + "/" + String(day()) + "," + String(hour()) + ":" + String(minute()) + "," + "1" + String(t)+ "," + String(h));
       
       control = SENSING_GENR;
       break;
@@ -132,18 +133,26 @@ void loop()
         {
           gsm->setAddress("http://erbium.requestcatcher.com/test");
           gsm->setMessage(String("Test Data")); // -> This should be read from the textfiles saved earlier (See the Design Requirement Manual)
-          dataFile->openRM();
-          bool success = dataFile->seek(*filePos);
-          if (success)
+          
+          //Sending the False Codling Moths(FSM) data
+          mothCountFile->openRM();
+          String message = mothCountFile->readln();
+          while (message == "~")
           {
-            gsm->setMessage(dataFile->readln());
+              message = mothCountFile->readln();
           }
-          else
+          gsm->setMessage(message);  
+          mothCountFile->closeRM();
+          
+          //Sending the temperature and humidity data
+          THFile->openRM();
+          message = THFile->readln();
+          while (message == "~")
           {
-            gsm->setMessage("Text File reading error");
+              message = THFile->readln();
           }
-          *filePos = dataFile->position();
-          dataFile->closeRM();
+          gsm->setMessage(message);  
+          THFile->closeRM();
           *started = true;
         }
       }
