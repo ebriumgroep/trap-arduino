@@ -80,18 +80,6 @@ public:
   boolean exists(const char *filepath);
   boolean exists(const String &filepath) { return exists(filepath.c_str()); }
 
-  // Create the requested directory heirarchy--if intermediate directories
-  // do not exist they will be created.
-  boolean mkdir(const char *filepath);
-  boolean mkdir(const String &filepath) { return mkdir(filepath.c_str()); }
-  
-  // Delete the file.
-  boolean remove(const char *filepath);
-  boolean remove(const String &filepath) { return remove(filepath.c_str()); }
-  
-  boolean rmdir(const char *filepath);
-  boolean rmdir(const String &filepath) { return rmdir(filepath.c_str()); }
-
 private:
 
   // This is used to determine the mode used to open a file
