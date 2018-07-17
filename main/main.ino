@@ -153,9 +153,9 @@ void loop()
     }
   }
 
-  if(day() != start)
+  if(day() != *start)
   {   
-    start = day();
+    *start = day();
     for(int a=0; a<5; a++)
       arrReadC[a] = 0;
     for(int a=0; a<1; a++)
