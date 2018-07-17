@@ -11,7 +11,7 @@ https://github.com/ebriumgroep/trap-arduino
 #define TEX_h
 
 #include "TEX.h"
-#include <SD.h>
+#include "sd_library\SD.h"
 
 class TEX
 {

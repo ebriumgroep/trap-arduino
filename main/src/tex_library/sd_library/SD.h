@@ -12,13 +12,13 @@
 
  */
 
-#ifndef __SD_H__
-#define __SD_H__
+#ifndef SD_H
+#define SD_H
 
 #include <Arduino.h>
 
-#include <utility/SdFat.h>
-#include <utility/SdFatUtil.h>
+#include "utility/SdFat.h"
+#include "utility/SdFatUtil.h"
 
 #define FILE_READ O_READ
 #define FILE_WRITE (O_READ | O_WRITE | O_CREAT)
