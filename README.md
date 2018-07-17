@@ -1,4 +1,4 @@
-# Erbium Trap: Arduino Code (Stable)
+# Erbium Trap: Arduino Code (Development)
 Welcome to the Erbium Groep / Group Arduino Code Team. 
 This is the latest bleeding edge version of the trap firmware.
 
