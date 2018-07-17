@@ -12,6 +12,7 @@ https://github.com/ebriumgroep/trap-arduino
 
 #include "TEX.h"
 #include <SD.h>
+#include <SPI.h>
 
 class TEX
 {
@@ -27,12 +28,6 @@ class TEX
 		//Operating functions
 		bool write(String);
 		bool append(String);
-		bool markLineAsRed(int);
-		bool openRM();
-		String readln();
-		void closeRM();
-		unsigned long position();
-		bool seek(unsigned long p);
 
 		//Get and Set functions
 		void changeFileName(String);
