@@ -188,7 +188,6 @@ void GSM::gsmOff()
 		digitalWrite(7, LOW);
 		delay(5000);
 	}
-	delete Modem;
 }
 
 int GSM::check(char ret[])
