@@ -21,39 +21,44 @@ class GSM
 {
 private:
 		// Constant Data
-		const String commands[18] = {"AT", "AT+CSQ", "AT+CPIN?", "AT+CPIN=4321", "AT+GSN", "AT+CREG?", "AT+CSQ",
-									 "AT+CMGF=1", "AT+CMGS=\"+27820486812\"", "THIS IS A TEST MESSAGE|", "|",
-									 "AT+QIFGCNT=0", "AT+QICSGP=1,\"internet\"", "@A", "@U", "@B", "@M", "AT+QHTTPREAD=50"};
-		int startupSet[5] = {0, 1, 2, 5, -1};                  		// The commands to execute in sequence to start the GSM modem
-		int postRequestSet[8] = {11, 12, 13, 14, 15, 16, 17, -1};  	// The commands to execute on sequence to do a post request to an server
+		static const int numCommands = 11;
+		const String orgCommands[numCommands] = {"AT", "AT+CSQ", "AT+CPIN?", "AT+CREG?",
+						"AT+QIFGCNT=0", "AT+QICSGP=1,\"internet\"", "@A", "@U", "@B", "@M", "AT+QHTTPREAD=50"};
+		String commands[numCommands];
+		int startupSet[5] = {0, 0, 2, 3, -1};            // The commands to execute in sequence to start the GSM modem
+		int postRequestSet[7] = {4, 5, 6, 7, 8, 9, -1};  // The commands to execute in sequence to do a post request to an server
+		int readRequestSet[2] = {10, -1};		 // The commands to execute in sequence to read an server response
+
+		// Internal Variables
+		SoftwareSerial *Modem;
+		String answer = "";
 
 		// Internal Methods
-		char *request(int);			// Execute an single command from the commands array
-		bool execute(int []);		// Execute a list of functions with the request method
+		String request(int);			// Execute an single command from the commands array
+		bool execute(int [], bool);		// Execute a list of functions with the request method
 		bool resolve(int);			// Resolves error codes
-		int arrLength(int []);		// Determine the length of an array
-		int check(char []);			// Checks for error codes in the output
+		int arrLength(int []);			// Determine the length of an array
+		int check(String);			// Checks for error codes in the output
 		bool isOn();				// Checks if the GSM modem is on
 		int hash(String);			// Hashes a String using a ASCII addition and Mid-Square method
 		
-
-		// Internal Variables
-		String address, message;
-		SoftwareSerial *Modem;
-
 public:
+
+		// Getter Methods
+		String getAnswer();			// Under Construction
+
 		// Setter Methods
-		void setAddress(String);	// Done
-		void setMessage(String);	// Done
+		void setMessage(String);		// Under Construction
 
 		// Control Methods
 		void gsmOn();				// Turns the GSM modem on
 		void gsmOff();				// Turns the GSM modem off
 		bool start();				// Done		
 		bool postRequest();			// Done
+		bool readRequest();			// Under Construction
 
 		// Constructor
-		GSM(int, int);				// Done
+		GSM(int, int, String, String);		// Done
 };
 
 #endif

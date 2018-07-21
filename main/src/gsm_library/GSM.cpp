@@ -13,24 +13,65 @@ https://github.com/ebriumgroep/trap-arduino
 #include "GSM.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-// SETTER METHODS
-void GSM::setAddress(String ad)
+// Getter Methods
+String GSM::getAnswer()
 {
-	address = ad;
+	return answer;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Setter Methods
 void GSM::setMessage(String me)
 {
 	int ha = hash(me);
-	message = String(ha)+String(",")+String(me);
+	String message = String(ha)+String(",")+String(me);
+	for(int a = 0; a<numCommands; ++a)
+	{
+		if(orgCommands[a][0] == '@')
+		{
+			switch(orgCommands[a][1])
+			{
+				case 'M':
+					orgCommands[a] = String("@M" + message);
+					break;
+				case 'B':
+					orgCommands[a] = String("@BAT+QHTTPPOST=" + String(message.length()) + ",50,50");
+					break; 	
+			}
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor
-GSM::GSM(int tx, int rx)
+GSM::GSM(int tx, int rx, String ad, String me)
 {
-	// Create and initialize the modem object
+	int ha = hash(me);
+	String message = String(ha)+String(",")+String(me);
+
+	for(int a = 0; a<numCommands; ++a)
+	{
+		if(orgCommands[a][0] == '@')
+		{
+			switch(orgCommands[a][1])
+			{
+				case 'U':
+					orgCommands[a] = String("@U" + ad);
+					break;
+				case 'M':
+					orgCommands[a] = String("@M" + message);
+					break;
+				case 'A':
+					orgCommands[a] = String("@AAT+QHTTPURL=" + String(ad.length()) + ",50");
+					break;
+				case 'B':
+					orgCommands[a] = String("@BAT+QHTTPPOST=" + String(message.length()) + ",50,50");
+					break; 	
+			}
+		}
+	}
+
 	Modem = new SoftwareSerial(tx, rx);
 	Modem->begin(9600);
 }
@@ -38,45 +79,45 @@ GSM::GSM(int tx, int rx)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Internal Methods
-char *GSM::request(int instruction)
+String GSM::request(int instruction)
 {
+	for (int a = 0; a < numCommands; ++a)
+	{
+		if(orgCommands[a][0] == '@')
+		{
+			switch(orgCommands[a][1])
+			{
+				case 'U':
+					commands[a] = orgCommands[a].substring(2);
+					break;
+				case 'M':
+					commands[a] = orgCommands[a].substring(2);
+					break;
+				case 'A':
+					commands[a] = orgCommands[a].substring(2);
+					break;
+				case 'B':
+					commands[a] = orgCommands[a].substring(2);
+					break; 	
+			}
+		}
+		else
+			commands[a] = orgCommands[a];
+	}
 	int count = 0, timeout = 0, i = 0;
 	bool flag = false;
-	char *buffer = new char[64];
+	char *buffer = new char[32];
 
-	for (int a = 0; a < 64; a++)
+	for (int a = 0; a < 32; ++a)
 	{
 		buffer[a] = '\0';
 	}
 
-	if (commands[instruction][0] == '@')
+	while(commands[instruction][i] != '\0')
 	{
-		switch (commands[instruction][1])
-		{
-			case 'U':
-				Modem->println(address);
-				break;
-			case 'M':
-				Modem->println(message);
-				break;
-			case 'A':
-				Modem->println(String("AT+QHTTPURL= ") + String(address.length()) + String(",50"));
-				break;
-			case 'B':
-				Modem->println(String("AT+QHTTPPOST=") + String(message.length()) + String(",50,50"));
-				break;
-		}
-	} else
-	{
-		while (commands[instruction][i] != '\0')
-		{
-			byte b = commands[instruction][i];
-			if (b == '|')
-				Modem->write(0x1a);
-			else
-				Modem->write(b);
-			++i;
-		}
+		byte b = commands[instruction][i];
+		Modem->write(b);
+		++i;
 	}
 
 	Modem->println();
@@ -87,7 +128,7 @@ char *GSM::request(int instruction)
 		while (Modem->available())
 		{
 			buffer[count++] = Modem->read();
-			if (count == 64)
+			if (count == 32)
 				break;
 			flag = true;
 		}
@@ -96,13 +137,20 @@ char *GSM::request(int instruction)
 			flag = false;
 		++timeout;
 	}
-	return buffer;
+	String ret = String(buffer);
+	for(int a = 0; a<32; ++a)
+	{
+		Serial.print(buffer[a]);
+	}
+	Serial.println();
+	delete [] buffer;
+	return ret;
 }
 
-bool GSM::execute(int set[])
+bool GSM::execute(int set[], bool read = false)
 {
 	bool fine = true;
-	char *output;
+	String output;
 	int process = 0, errorCode = -1;
 	while (fine and process < arrLength(set))
 	{
@@ -110,8 +158,10 @@ bool GSM::execute(int set[])
 		output = request(set[process]);
 		errorCode = check(output);
 		Serial.println(errorCode);
+
 		if (errorCode != -1)
 			fine = false;
+
 		if (!fine)
 		{
 			fine = resolve(errorCode);
@@ -121,11 +171,15 @@ bool GSM::execute(int set[])
 		{
 			errorCode = -1;
 			++process;
-		} else
-		{
-			break;
 		}
 	}
+	
+	if(read)
+	{
+		// Phrase the output and save it to answer
+		answer = output;	
+	}	
+	
 	return fine;
 }
 
@@ -190,24 +244,27 @@ void GSM::gsmOff()
 	}
 }
 
-int GSM::check(char ret[])
+int GSM::check(String ret)
 {
 	char err[] = {'\0', '\0', '\0', '\0'};
+
 	if (ret[0] == '\0')
+	{
 		err[0] = 0; // Nothing got returned
-	for (int a = 0; a < 64; ++a)
+		return 0;
+	}
+
+	for (int a = 0; a < 32; ++a)
 	{
 		// SMS MESSAGE
 		if (ret[a] == '>')
 		{
-			delete [] ret;
 			return -1;
 		}
 		// OK MESSAGE
 		if (ret[a] == 'O')
 			if (ret[a + 1] == 'K')
 			{
-				delete [] ret;
 				return -1;
 			}
 		// CONNECT MESSAGE
@@ -219,7 +276,6 @@ int GSM::check(char ret[])
 							if (ret[a + 5] == 'C')
 								if (ret[a + 6] == 'T')
 								{
-									delete [] ret;
 									return -1;
 								}
 		// CME ERROR
@@ -232,7 +288,6 @@ int GSM::check(char ret[])
 							err[i - a] = ret[11 + i];
 					}
 	}
-	delete [] ret;
 	return atoi(err);
 }
 
@@ -258,11 +313,19 @@ int GSM::hash(String text)
 //Control Methods
 bool GSM::start()
 {
+	Serial.println("a");
 	return execute(startupSet);
 }
 
 bool GSM::postRequest()
 {
+	Serial.println("b");
 	return execute(postRequestSet);
+}
+
+bool GSM::readRequest()
+{
+	Serial.println("c");
+	return execute(readRequestSet, true);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
