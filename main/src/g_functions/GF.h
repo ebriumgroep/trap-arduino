@@ -10,17 +10,11 @@ The latest version of this library can always be found at
 https://github.com/ebriumgroep/trap-arduino
 */
 
-#ifndef GF_h
-#define GF_h
-
 #include <Arduino.h>
 
-class GF
+namespace Funcs
 {
-public:
-		int hash(String text);							// Hashes a String using a ASCII addition and Mid-Square method
-		String encrypt(String text, String key);		// Encrypts a String
-		String decrypt(String encrypted, String key);	// Decrypts a String
-};
-
-#endif
+	int hash(String text);							// Hashes a String using a ASCII addition and Mid-Square method
+	String encrypt(String text, String key);		// Encrypts a String with a 256-bit key
+	String decrypt(String encrypted, String key);	// Decrypts a String with a 256-bit key
+}

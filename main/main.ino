@@ -3,6 +3,7 @@
 #include "src/gsm_library/GSM.h"    // GSM Modem
 #include "src/time_library/Time.h"  // Time
 #include "src/g_functions/GF.h"     // General Functions
+using namespace Funcs;
 
 //#include "src/tex_library/TEX.h"    // For text files. (Under development)
 
@@ -35,7 +36,12 @@ void setup()
 {
   // Starts the Serial connection for debugging
   Serial.begin(9600);
-
+  String text = "kjdhnl#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+  String key = "BN+uZa4{$tS={=F#pRflx:}()n7@sM&8";
+  Serial.println(text);
+  Serial.println(hash(text));
+  Serial.println(encrypt(text, key));
+  Serial.println(decrypt(encrypt(text, key), key) == text);
   // Starts the temperature sensor
   dht.begin();
 
