@@ -54,7 +54,7 @@ void setup()
     // Start the GSM modem
     if (gsm.start())
     {
-      gsm.setAddress("http://erbium.requestcatcher.com/test");
+      gsm.setAddress("http://requestbin.fullcontact.com/sjugk9sj");
       gsm.setMessage("Everything is Working");
       if (gsm.postRequest())
       {
@@ -132,7 +132,7 @@ void loop()
           // Starts the GSM modem
           if (gsm.start())
           {
-            gsm.setAddress("http://erbium.requestcatcher.com/test");
+            gsm.setAddress("http://requestbin.fullcontact.com/sjugk9sj");
             gsm.setMessage(String("Test Data")); // -> This should be read from the textfiles saved earlier (See the Design Requirement Manual)
             *started = true;
           }
