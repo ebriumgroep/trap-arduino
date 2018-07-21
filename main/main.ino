@@ -2,6 +2,7 @@
 #include "src/dht_library/DHT.h"    // Temperature and Humidity Sensor
 #include "src/gsm_library/GSM.h"    // GSM Modem
 #include "src/time_library/Time.h"  // Time
+#include "src/g_functions/GF.h"     // General Functions
 
 //#include "src/tex_library/TEX.h"    // For text files. (Under development)
 
