@@ -29,13 +29,11 @@ private:
 
 		// Internal Methods
 		char *request(int);			// Execute an single command from the commands array
-		bool execute(int []);			// Execute a list of functions with the request method
+		bool execute(int []);		// Execute a list of functions with the request method
 		bool resolve(int);			// Resolves error codes
-		int arrLength(int []);			// Determine the length of an array
+		int arrLength(int []);		// Determine the length of an array
 		int check(char []);			// Checks for error codes in the output
 		bool isOn();				// Checks if the GSM modem is on
-		void gsmOn();				// Turns the GSM modem on
-		void gsmOff();				// Turns the GSM modem of
 		int hash(String);			// Hashes a String using a ASCII addition and Mid-Square method
 		
 
@@ -45,16 +43,17 @@ private:
 
 public:
 		// Setter Methods
-		void setAddress(String);		// Done
-		void setMessage(String);		// Done
+		void setAddress(String);	// Done
+		void setMessage(String);	// Done
 
 		// Control Methods
+		void gsmOn();				// Turns the GSM modem on
+		void gsmOff();				// Turns the GSM modem off
 		bool start();				// Done		
 		bool postRequest();			// Done
 
-		// Constructor and Destructor
+		// Constructor
 		GSM(int, int);				// Done
-		~GSM();					// Done
 };
 
 #endif

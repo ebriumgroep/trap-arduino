@@ -33,16 +33,6 @@ GSM::GSM(int tx, int rx)
 	// Create and initialize the modem object
 	Modem = new SoftwareSerial(tx, rx);
 	Modem->begin(9600);
-	
-	// Turn the GSM modem on
-	gsmOn();
-}
-
-//Destructor
-GSM::~GSM()
-{
-	gsmOff();
-	delete Modem;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,6 +188,7 @@ void GSM::gsmOff()
 		digitalWrite(7, LOW);
 		delay(5000);
 	}
+	delete Modem;
 }
 
 int GSM::check(char ret[])
