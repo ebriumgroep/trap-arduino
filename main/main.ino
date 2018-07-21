@@ -3,9 +3,7 @@
 #include "src/gsm_library/GSM.h"    // GSM Modem
 #include "src/time_library/Time.h"  // Time
 
-//#include "src/tex_library/TEX.h"    // For text files. (Under development)
-
-GSM gsm(2, 3);
+GSM gsm(2, 3, "http://webhook.site/1de5a6c9-a04d-466d-aa83-9746c2a62669","erbium");
 DHT dht(4, 22);
 
 // The state of the system
@@ -46,27 +44,15 @@ void setup()
   start = new int;
   *start = day();
 
-  // Sends an test signal on startup
-  bool *started = new bool;
-  *started = false;
-  while (!(*started))
+  // Start the GSM modem
+  while (!gsm.start())
   {
-    // Start the GSM modem
-    if (gsm.start())
-    {
-      gsm.setAddress("http://erbium.requestcatcher.com/test");
-      gsm.setMessage("Everything is Working");
-      if (gsm.postRequest())
-      {
-        *started = true;
-      }
-    }
+      // Sends an test signal on startup
+      gsm.postRequest();
   }
 
   // Turn the GSM modem off
   gsm.gsmOff();
-
-  delete started;
 }
 
 void loop()
@@ -101,12 +87,11 @@ void loop()
       {
         bool state = false;
         state = digitalRead(SENSOR);
-        if (state)
+        if (!state)
         {
           Serial.println("found");    // -> Save the state to file (See the Design Requirement Manual)
-          delay(2000);
         }
-        delay(1000);
+        delay(100);
         break;
       }
     case SENSING_TEMP:
@@ -114,7 +99,7 @@ void loop()
         // Read the temperature/humidity and assign it to the GSM modem
         float t = dht.readTemperature();
         float h = dht.readHumidity();
-
+        gsm.setMessage(String(t) + String(",") + String(h));
         Serial.println(String(t) + String(",") + String(h)); // -> Save the state to file (See the Design Requirement Manual)
 
         control = SENSING_GENR;
@@ -122,37 +107,27 @@ void loop()
       }
     case TRANSMITTING:
       {
-        // Start the GSM modem again
-        gsm.start();
-
-        bool *started = new bool;
-        *started = false;
-        while (!(*started))
+        bool started = false;
+        while (!started)
         {
-          // Starts the GSM modem
-          if (gsm.start())
-          {
-            gsm.setAddress("http://erbium.requestcatcher.com/test");
-            gsm.setMessage(String("Test Data")); // -> This should be read from the textfiles saved earlier (See the Design Requirement Manual)
-            *started = true;
-          }
+          started = gsm.start();
         }
-        // Use the GSM modem to post the temperature to the server
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (gsm.postRequest())
         {
-          // Reads the returned data from the post request to determine if the transmission was successful
-          if (true)
-            control = SENSING_GENR;
-          else
-            control = TRANSMITTING;
+          if (gsm.readRequest())
+          {
+            String ans = gsm.getAnswer();
+            Serial.println("This is the output from the POST request");
+            Serial.println(ans);
+            Serial.println("Done....");
+          }
+          control = SENSING_GENR;
         }
-        else
-          control = TRANSMITTING;
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // Turn the GSM modem off
         gsm.gsmOff();
-
-        delete started;
         break;
       }
   }
