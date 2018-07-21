@@ -18,9 +18,9 @@ https://github.com/ebriumgroep/trap-arduino
 class GF
 {
 public:
-		int hash(String);			// Hashes a String using a ASCII addition and Mid-Square method
-		String encrypt(String);		// Encrypts a String
-		String decrypt(String);		// Decrypts a String
+		int hash(String text);							// Hashes a String using a ASCII addition and Mid-Square method
+		String encrypt(String text, String key);		// Encrypts a String
+		String decrypt(String encrypted, String key);	// Decrypts a String
 };
 
 #endif

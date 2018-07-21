@@ -29,12 +29,12 @@ int GF::hash(String text)
 	return ret; // returns an int between 100 and 999
 }
 
-String GF::encrypt(String text)
+String GF::encrypt(String text, String key)
 {
 	return text;
 }
 
-String GF::decrypt(String encrypted)
+String GF::decrypt(String encrypted, String key)
 {
 	return encrypted;
 }
