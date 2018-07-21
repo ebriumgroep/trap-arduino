@@ -1,7 +1,9 @@
 //Import our Libraries
-#include "src/dht_library/DHT.h"    // Temperature and Humidity Sensor
-#include "src/gsm_library/GSM.h"    // GSM Modem
-#include "src/time_library/Time.h"  // Time
+#include "src/DHT.h"    // Temperature and Humidity Sensor
+#include "src/GSM.h"    // GSM Modem
+#include "src/Time.h"  // Time
+#include "src/GF.h"     // General Functions
+using namespace Funcs;
 
 GSM gsm(2, 3, "http://webhook.site/1de5a6c9-a04d-466d-aa83-9746c2a62669","erbium");
 DHT dht(4, 22);

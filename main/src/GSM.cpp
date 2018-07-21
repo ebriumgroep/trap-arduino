@@ -24,6 +24,7 @@ String GSM::getAnswer()
 void GSM::setMessage(String me)
 {
 	int ha = hash(me);
+	//String message = encrypt(String(ha)+String(",")+String(me),key);
 	String message = String(ha)+String(",")+String(me);
 	for(int a = 0; a<numCommands; ++a)
 	{
@@ -289,23 +290,6 @@ int GSM::check(String ret)
 					}
 	}
 	return atoi(err);
-}
-
-int GSM::hash(String text)
-{
-	long int sum = 0, key = 0;
-	int count = 0, length = 0;
-	for (int i = 0; i < text.length(); ++i) // adds the ASCII value for each letter to sum
-		sum += int(text[i]); // gets ASCII value of letter
-	while (key < 100 && count++ < 3) // ensures key is at least 3 characters long with no infinite loop
-		key = sum = sum * sum; // squares the sum
-	for(; sum != 0; sum /= 10, ++length); // gets the length of the squared sum
-	char *sKey = new char[3];
-	for (int i = 0; i < 3; ++i)
-		sKey[i] = String(key)[((length/2) - 1) + i]; // gets the middle three characters
-	int ret = atoi(sKey); // converts char array to int
-	delete [] sKey;
-	return ret; // returns an int between 100 and 999
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
