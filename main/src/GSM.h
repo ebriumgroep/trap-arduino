@@ -34,7 +34,7 @@ private:
 		// Internal Variables
 		SoftwareSerial *Modem;
 		String answer = "";
-		String key = "BN+uZa4{$tS={=F#pRflx:}()n7@sM&8";
+		char key [32] = {'B','N','+','u','Z','a','4','{','$','t','S','=','{','=','F','#','p','R','f','l','x',':','}','(',')','n','7','@','s','M','&','8'};
 
 		// Internal Methods
 		String request(int);			// Execute an single command from the commands array
@@ -50,7 +50,7 @@ public:
 		String getAnswer();				// Under Construction
 
 		// Setter Methods
-		void setMessage(String);		// Under Construction
+		void setMessage(char []);		// Under Construction
 
 		// Control Methods
 		void gsmOn();					// Turns the GSM modem on
@@ -60,7 +60,7 @@ public:
 		bool readRequest();				// Under Construction
 
 		// Constructor
-		GSM(int, int, String, String);		// Done
+		GSM(int, int, char [], char []);// Done
 };
 
 #endif

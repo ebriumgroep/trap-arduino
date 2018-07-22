@@ -21,11 +21,12 @@ String GSM::getAnswer()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Setter Methods
-void GSM::setMessage(String me)
+void GSM::setMessage(char me [])
 {
 	int ha = hash(me);
-	//String message = encrypt(String(ha)+String(",")+String(me),key);
-	String message = String(ha)+String(",")+String(me);
+	char* message = &String(String(ha)+String(",")+String(me))[0];
+	encrypt(message, key);
+	//String message = String(ha) + String(",") + String(me);
 	for(int a = 0; a<numCommands; ++a)
 	{
 		if(orgCommands[a][0] == '@')
@@ -33,10 +34,10 @@ void GSM::setMessage(String me)
 			switch(orgCommands[a][1])
 			{
 				case 'M':
-					orgCommands[a] = String("@M" + message);
+					orgCommands[a] = String("@M" + String(message));
 					break;
 				case 'B':
-					orgCommands[a] = String("@BAT+QHTTPPOST=" + String(message.length()) + ",50,50");
+					orgCommands[a] = String("@BAT+QHTTPPOST=" + String(String(message).length()) + ",50,50");
 					break; 	
 			}
 		}
@@ -46,11 +47,10 @@ void GSM::setMessage(String me)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Constructor
-GSM::GSM(int tx, int rx, String ad, String me)
+GSM::GSM(int tx, int rx, char ad [], char me [])
 {
 	int ha = hash(me);
-	String message = String(ha)+String(",")+String(me);
-
+	String message = String(ha) + String(",") + String(me);
 	for(int a = 0; a<numCommands; ++a)
 	{
 		if(orgCommands[a][0] == '@')
@@ -58,13 +58,13 @@ GSM::GSM(int tx, int rx, String ad, String me)
 			switch(orgCommands[a][1])
 			{
 				case 'U':
-					orgCommands[a] = String("@U" + ad);
+					orgCommands[a] = String("@U" + String(ad));
 					break;
 				case 'M':
 					orgCommands[a] = String("@M" + message);
 					break;
 				case 'A':
-					orgCommands[a] = String("@AAT+QHTTPURL=" + String(ad.length()) + ",50");
+					orgCommands[a] = String("@AAT+QHTTPURL=" + String(String(ad).length()) + ",50");
 					break;
 				case 'B':
 					orgCommands[a] = String("@BAT+QHTTPPOST=" + String(message.length()) + ",50,50");

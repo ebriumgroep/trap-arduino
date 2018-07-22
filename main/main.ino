@@ -5,7 +5,10 @@
 #include "src/GF.h"     // General Functions
 using namespace Funcs;
 
-GSM gsm(2, 3, "http://webhook.site/1de5a6c9-a04d-466d-aa83-9746c2a62669","erbium");
+char adrs [] = "http://webhook.site/1de5a6c9-a04d-466d-aa83-9746c2a62669";
+char msg [] = "Startup Message";
+
+GSM gsm(2, 3, adrs, msg);
 DHT dht(4, 22);
 
 // The state of the system
@@ -101,8 +104,9 @@ void loop()
         // Read the temperature/humidity and assign it to the GSM modem
         float t = dht.readTemperature();
         float h = dht.readHumidity();
-        gsm.setMessage(String(t) + String(",") + String(h));
-        Serial.println(String(t) + String(",") + String(h)); // -> Save the state to file (See the Design Requirement Manual)
+        char* mes = &String(String(t) + String(",") + String(h))[0];
+        gsm.setMessage(mes);
+        Serial.println(mes); // -> Save the state to file (See the Design Requirement Manual)
 
         control = SENSING_GENR;
         break;
