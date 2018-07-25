@@ -29,8 +29,10 @@ int arrTranC[] =  {0, 0, 0, 0, 0 };
 
 // Pointers
 int *start;
-TEX *THFile = new TEX("THFile.txt");
-TEX *mothCountFile = new TEX("MotCountFile.txt");
+String *line;
+String *filename;
+TEX *THFile;
+TEX *mothCountFile;
 void setup()
 {
   // Starts the Serial connection for debugging
@@ -42,6 +44,12 @@ void setup()
   // Initialises the input pins
   pinMode(SENSOR, INPUT);
   pinMode(AMODEM, OUTPUT);
+
+  //Creating files
+  filename = new String("THFile.txt");
+  TEX *THFile = new TEX(filename);
+  filename = new String("MotCountFile.txt");
+  TEX *mothCountFile = new TEX(filename);
 
   // Initialises the day it was started
   start = new int;
@@ -101,7 +109,9 @@ void loop()
       if(state)
       {
         Serial.println("found");    // -> Save the state to file (See the Design Requirement Manual)
-        mothCountFile->append(String(year()) + "/" + String(month()) + "/" + String(day()) + "," + String(hour()) + ":" + String(minute()) + "," + "1");
+        line = new String(String(year()) + "/" + String(month()) + "/" + String(day()) + "," + String(hour()) + ":" + String(minute()));
+        mothCountFile->append(line);
+        delete line; 
         delay(2000);
       }
       delay(1000);
@@ -114,8 +124,9 @@ void loop()
       float h = dht.readHumidity();
 
       Serial.println(String(t)+String(",")+String(h));  // -> Save the state to file (See the Design Requirement Manual)
-      THFile->append(String(year()) + "/" + String(month()) + "/" + String(day()) + "," + String(hour()) + ":" + String(minute()) + "," + "1" + String(t)+ "," + String(h));
-      
+      line = new String(String(year()) + "/" + String(month()) + "/" + String(day()) + "," + String(hour()) + ":" + String(minute()) + "," + "1" + String(t)+ "," + String(h));
+      THFile->append(line);
+      delete line;
       control = SENSING_GENR;
       break;
     }
@@ -136,23 +147,24 @@ void loop()
           
           //Sending the False Codling Moths(FSM) data
           mothCountFile->openRM();
-          String message = mothCountFile->readln();
-          while (message == "~")
+          line = mothCountFile->readln();
+          while (line == nullptr)
           {
-              message = mothCountFile->readln();
+              //message = mothCountFile->readln();
           }
-          gsm->setMessage(message);  
+          gsm->setMessage(*line);  
           mothCountFile->closeRM();
-          
+          delete line;
           //Sending the temperature and humidity data
-          THFile->openRM();
-          message = THFile->readln();
-          while (message == "~")
+         THFile->openRM();
+         line = THFile->readln();
+          while (line == nullptr)
           {
-              message = THFile->readln();
+              //line = THFile->readln();
           }
-          gsm->setMessage(message);  
+          gsm->setMessage(*line);  
           THFile->closeRM();
+          delete line;
           *started = true;
         }
       }

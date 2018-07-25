@@ -36,21 +36,14 @@ public:
   virtual size_t write(uint8_t);
   virtual size_t write(const uint8_t *buf, size_t size);
   virtual int read();
-  virtual int peek();
-  virtual int available();
-  virtual void flush();
+ virtual int peek();
+ virtual int available();
   int read(void *buf, uint16_t nbyte);
   boolean seek(uint32_t pos);
   uint32_t position();
   uint32_t size();
   void close();
   operator bool();
-  char * name();
-
-  boolean isDirectory(void);
-  File openNextFile(uint8_t mode = O_RDONLY);
-  void rewindDirectory(void);
-  
   using Print::write;
 };
 

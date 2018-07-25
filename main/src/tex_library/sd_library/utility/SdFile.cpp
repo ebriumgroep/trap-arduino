@@ -200,48 +200,6 @@ void SdFile::dirName(const dir_t& dir, char* name) {
  * \param[in] indent Amount of space before file name. Used for recursive
  * list to indicate subdirectory level.
  */
-void SdFile::ls(uint8_t flags, uint8_t indent) {
-  dir_t* p;
-
-  rewind();
-  while ((p = readDirCache())) {
-    // done if past last used entry
-    if (p->name[0] == DIR_NAME_FREE) break;
-
-    // skip deleted entry and entries for . and  ..
-    if (p->name[0] == DIR_NAME_DELETED || p->name[0] == '.') continue;
-
-    // only list subdirectories and files
-    if (!DIR_IS_FILE_OR_SUBDIR(p)) continue;
-
-    // print any indent spaces
-    for (int8_t i = 0; i < indent; i++) Serial.print(' ');
-
-    // print file name with possible blank fill
-    printDirName(*p, flags & (LS_DATE | LS_SIZE) ? 14 : 0);
-
-    // print modify date/time if requested
-    if (flags & LS_DATE) {
-       printFatDate(p->lastWriteDate);
-       Serial.print(' ');
-       printFatTime(p->lastWriteTime);
-    }
-    // print size if requested
-    if (!DIR_IS_SUBDIR(p) && (flags & LS_SIZE)) {
-      Serial.print(' ');
-      Serial.print(p->fileSize);
-    }
-    Serial.println();
-
-    // list subdirectory content if requested
-    if ((flags & LS_R) && DIR_IS_SUBDIR(p)) {
-      uint16_t index = curPosition()/32 - 1;
-      SdFile s;
-      if (s.open(this, index, O_READ)) s.ls(flags, indent + 2);
-      seekSet(32 * (index + 1));
-    }
-  }
-}
 //------------------------------------------------------------------------------
 // format directory name field from a 8.3 name string
 uint8_t SdFile::make83Name(const char* str, uint8_t* name) {
@@ -481,7 +439,7 @@ uint8_t SdFile::open(SdFile* dirFile, const char* fileName, uint8_t oflag) {
  * See open() by fileName for definition of flags and return values.
  *
  */
-uint8_t SdFile::open(SdFile* dirFile, uint16_t index, uint8_t oflag) {
+/*uint8_t SdFile::open(SdFile* dirFile, uint16_t index, uint8_t oflag) {
   // error if already open
   if (isOpen())return false;
 
@@ -504,7 +462,7 @@ uint8_t SdFile::open(SdFile* dirFile, uint16_t index, uint8_t oflag) {
   }
   // open cached entry
   return openCachedEntry(index & 0XF, oflag);
-}
+}*/
 //------------------------------------------------------------------------------
 // open a cached directory entry. Assumes vol_ is initializes
 uint8_t SdFile::openCachedEntry(uint8_t dirIndex, uint8_t oflag) {
@@ -555,101 +513,6 @@ uint8_t SdFile::openCachedEntry(uint8_t dirIndex, uint8_t oflag) {
  * Reasons for failure include the FAT volume has not been initialized
  * or it a FAT12 volume.
  */
-uint8_t SdFile::openRoot(SdVolume* vol) {
-  // error if file is already open
-  if (isOpen()) return false;
-
-  if (vol->fatType() == 16) {
-    type_ = FAT_FILE_TYPE_ROOT16;
-    firstCluster_ = 0;
-    fileSize_ = 32 * vol->rootDirEntryCount();
-  } else if (vol->fatType() == 32) {
-    type_ = FAT_FILE_TYPE_ROOT32;
-    firstCluster_ = vol->rootDirStart();
-    if (!vol->chainSize(firstCluster_, &fileSize_)) return false;
-  } else {
-    // volume is not initialized or FAT12
-    return false;
-  }
-  vol_ = vol;
-  // read only
-  flags_ = O_READ;
-
-  // set to start of file
-  curCluster_ = 0;
-  curPosition_ = 0;
-
-  // root has no directory entry
-  dirBlock_ = 0;
-  dirIndex_ = 0;
-  return true;
-}
-//------------------------------------------------------------------------------
-/** %Print the name field of a directory entry in 8.3 format to Serial.
- *
- * \param[in] dir The directory structure containing the name.
- * \param[in] width Blank fill name if length is less than \a width.
- */
-void SdFile::printDirName(const dir_t& dir, uint8_t width) {
-  uint8_t w = 0;
-  for (uint8_t i = 0; i < 11; i++) {
-    if (dir.name[i] == ' ')continue;
-    if (i == 8) {
-      Serial.print('.');
-      w++;
-    }
-    Serial.write(dir.name[i]);
-    w++;
-  }
-  if (DIR_IS_SUBDIR(&dir)) {
-    Serial.print('/');
-    w++;
-  }
-  while (w < width) {
-    Serial.print(' ');
-    w++;
-  }
-}
-//------------------------------------------------------------------------------
-/** %Print a directory date field to Serial.
- *
- *  Format is yyyy-mm-dd.
- *
- * \param[in] fatDate The date field from a directory entry.
- */
-void SdFile::printFatDate(uint16_t fatDate) {
-  Serial.print(FAT_YEAR(fatDate));
-  Serial.print('-');
-  printTwoDigits(FAT_MONTH(fatDate));
-  Serial.print('-');
-  printTwoDigits(FAT_DAY(fatDate));
-}
-//------------------------------------------------------------------------------
-/** %Print a directory time field to Serial.
- *
- * Format is hh:mm:ss.
- *
- * \param[in] fatTime The time field from a directory entry.
- */
-void SdFile::printFatTime(uint16_t fatTime) {
-  printTwoDigits(FAT_HOUR(fatTime));
-  Serial.print(':');
-  printTwoDigits(FAT_MINUTE(fatTime));
-  Serial.print(':');
-  printTwoDigits(FAT_SECOND(fatTime));
-}
-//------------------------------------------------------------------------------
-/** %Print a value as two digits to Serial.
- *
- * \param[in] v Value to be printed, 0 <= \a v <= 99
- */
-void SdFile::printTwoDigits(uint8_t v) {
-  char str[3];
-  str[0] = '0' + v/10;
-  str[1] = '0' + v % 10;
-  str[2] = 0;
-  Serial.print(str);
-}
 //------------------------------------------------------------------------------
 /**
  * Read data from a file starting at the current position.
@@ -729,22 +592,6 @@ int16_t SdFile::read(void* buf, uint16_t nbyte) {
  * readDir() called before a directory has been opened, this is not
  * a directory file or an I/O error occurred.
  */
-int8_t SdFile::readDir(dir_t* dir) {
-  int8_t n;
-  // if not a directory file or miss-positioned return an error
-  if (!isDir() || (0X1F & curPosition_)) return -1;
-
-  while ((n = read(dir, sizeof(dir_t))) == sizeof(dir_t)) {
-    // last entry if DIR_NAME_FREE
-    if (dir->name[0] == DIR_NAME_FREE) break;
-    // skip empty entries and entry for .  and ..
-    if (dir->name[0] == DIR_NAME_DELETED || dir->name[0] == '.') continue;
-    // return if normal file or subdirectory
-    if (DIR_IS_FILE_OR_SUBDIR(dir)) return n;
-  }
-  // error, end of file, or past last entry
-  return n < 0 ? -1 : 0;
-}
 //------------------------------------------------------------------------------
 // Read next directory entry into the cache
 // Assumes file is correctly positioned

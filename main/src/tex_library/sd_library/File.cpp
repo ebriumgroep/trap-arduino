@@ -43,16 +43,6 @@ File::File(void) {
   //Serial.print("Created empty file object");
 }
 
-// returns a pointer to the file name
-char *File::name(void) {
-  return _name;
-}
-
-// a directory is a special type of file
-boolean File::isDirectory(void) {
-  return (_file && _file->isDir());
-}
-
 
 size_t File::write(uint8_t val) {
   return write(&val, 1);
@@ -101,11 +91,6 @@ int File::available() {
   uint32_t n = size() - position();
 
   return n > 0X7FFF ? 0X7FFF : n;
-}
-
-void File::flush() {
-  if (_file)
-    _file->sync();
 }
 
 boolean File::seek(uint32_t pos) {

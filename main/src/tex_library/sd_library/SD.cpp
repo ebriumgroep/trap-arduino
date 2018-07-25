@@ -117,7 +117,7 @@ bool getNextPathComponent(const char *path, unsigned int *p_offset,
 
 
 
-boolean walkPath(const char *filepath, SdFile& parentDir,
+/*boolean walkPath(const char *filepath, SdFile& parentDir,
 		 boolean (*callback)(SdFile& parentDir,
 				     const char *filePathComponent,
 				     boolean isLastComponent,
@@ -152,8 +152,8 @@ boolean walkPath(const char *filepath, SdFile& parentDir,
    */
 
 
-  SdFile subfile1;
-  SdFile subfile2;
+ /* SdFile subfile1;
+ SdFile subfile2;
 
   char buffer[PATH_COMPONENT_BUFFER_LEN]; 
 
@@ -522,19 +522,19 @@ File SDClass::open(char *filepath, uint8_t mode) {
 //}
 
 
-boolean SDClass::exists(const char *filepath) {
+/*boolean SDClass::exists(const char *filepath) {
   /*
 
      Returns true if the supplied file path exists.
 
    */
-  return walkPath(filepath, root, callback_pathExists);
-}
+  //return walkPath(filepath, root, callback_pathExists);
+//}
 
-void File::rewindDirectory(void) {  
+/*void File::rewindDirectory(void) {  
   if (isDirectory())
     _file->rewind();
-}
+}*/
 
 SDClass SD;
 
