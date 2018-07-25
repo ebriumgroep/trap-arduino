@@ -1,11 +1,12 @@
 //Import our Libraries
 #include "src/DHT.h"    // Temperature and Humidity Sensor
 #include "src/GSM.h"    // GSM Modem
-#include "src/Time.h"  // Time
+#include "src/Time.h"   // Time
+#include "src/TEX.h"    // Text
 #include "src/GF.h"     // General Functions
 using namespace Funcs;
 
-char adrs [] = "http://webhook.site/1de5a6c9-a04d-466d-aa83-9746c2a62669";
+char adrs [] = "http://webhook.site/ee4798db-b937-4c84-8973-6ffc0687eabc";
 char msg [] = "Startup Message";
 
 GSM gsm(2, 3, adrs, msg);
@@ -33,10 +34,17 @@ int arrTranC[] =  {0, 0, 0, 0, 0 };
 // Pointers
 int *start;
 
+// Files
+File *temphum, *counter;
+
 void setup()
 {
   // Starts the Serial connection for debugging
   Serial.begin(9600);
+
+  if (!SD.begin(8)) {
+    while (1);
+  }
 
   // Starts the temperature sensor
   dht.begin();
@@ -95,6 +103,15 @@ void loop()
         if (!state)
         {
           Serial.println("found");    // -> Save the state to file (See the Design Requirement Manual)
+          counter = new File;
+          *counter = SD.open("c", FILE_WRITE);
+          
+          if (*counter)
+          {
+            counter->println(String(1));
+            counter->close();
+          }
+          delete counter;
         }
         delay(100);
         break;
@@ -107,6 +124,14 @@ void loop()
         char* mes = &String(String(t) + String(",") + String(h))[0];
         gsm.setMessage(mes);
         Serial.println(mes); // -> Save the state to file (See the Design Requirement Manual)
+        temphum = new File;
+        *temphum = SD.open("t", FILE_WRITE);
+        if (*temphum)
+        {
+          temphum->println(String(t) + String(",") + String(h));
+          temphum->close();
+        }
+        delete temphum;
 
         control = SENSING_GENR;
         break;
