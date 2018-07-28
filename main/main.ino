@@ -2,8 +2,9 @@
 #include "src/DHT.h"    // Temperature and Humidity Sensor
 #include "src/GSM.h"    // GSM Modem
 #include "src/Time.h"   // Time
-#include "src/TEX.h"    // Text
+//#include "src/TEX.h"    // Text
 #include "src/GF.h"     // General Functions
+#include "src/SDCOM.h"    //
 using namespace Funcs;
 
 char adrs [] = "http://webhook.site/ee4798db-b937-4c84-8973-6ffc0687eabc";
@@ -35,16 +36,17 @@ int arrTranC[] =  {0, 0, 0, 0, 0 };
 int *start;
 
 // Files
-File *temphum, *counter;
+//File *temphum, *counter;
+SDCOM sdCom(8);
 
 void setup()
 {
   // Starts the Serial connection for debugging
   Serial.begin(9600);
 
-  if (!SD.begin(8)) {
+  /*if (!SD.begin(8)) {
     while (1);
-  }
+  }*/
 
   // Starts the temperature sensor
   dht.begin();
@@ -103,15 +105,17 @@ void loop()
         if (!state)
         {
           Serial.println("found");    // -> Save the state to file (See the Design Requirement Manual)
-          counter = new File;
-          *counter = SD.open("c", FILE_WRITE);
+          //counter = new File;
+          /**counter = SD.open("c", FILE_WRITE);
           
           if (*counter)
           {
             counter->println(String(1));
             counter->close();
           }
-          delete counter;
+          delete counter;*/
+          String mes = "found";
+          sdCom.write(mes,100008);
         }
         delay(100);
         break;
@@ -122,16 +126,19 @@ void loop()
         float t = dht.readTemperature();
         float h = dht.readHumidity();
         char* mes = &String(String(t) + String(",") + String(h))[0];
+        //String *mes = new String(String(t) + String(",") + String(h));
         gsm.setMessage(mes);
         Serial.println(mes); // -> Save the state to file (See the Design Requirement Manual)
-        temphum = new File;
+        /*temphum = new File;
         *temphum = SD.open("t", FILE_WRITE);
         if (*temphum)
         {
           temphum->println(String(t) + String(",") + String(h));
           temphum->close();
         }
-        delete temphum;
+        delete temphum;*/
+        
+        //sdCom.write(mes, 100008);
 
         control = SENSING_GENR;
         break;
