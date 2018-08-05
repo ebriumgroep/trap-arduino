@@ -5,7 +5,7 @@
 #include "src/GF.h"     // General Functions
 using namespace Funcs;
 
-char adrs [] = "http://webhook.site/1de5a6c9-a04d-466d-aa83-9746c2a62669";
+char adrs [] = "http://erbium.requestcatcher.com/test";
 char msg [] = "Startup Message";
 
 GSM gsm(2, 3, adrs, msg);
@@ -50,11 +50,11 @@ void setup()
   *start = day();
 
   // Start the GSM modem
-  while (!gsm.start())
-  {
+  //while (!gsm.start())
+  //{
       // Sends an test signal on startup
       gsm.postRequest();
-  }
+  //}
 
   // Turn the GSM modem off
   gsm.gsmOff();

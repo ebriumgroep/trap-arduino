@@ -24,9 +24,9 @@ String GSM::getAnswer()
 void GSM::setMessage(char me [])
 {
 	int ha = hash(me);
-	char* message = &String(String(ha)+String(",")+String(me))[0];
-	encrypt(message, key);
-	//String message = String(ha) + String(",") + String(me);
+	//char* message = &String(String(ha)+String(",")+String(me))[0];
+	//encrypt(message, key);
+	String message = String(ha) + String(",") + String(me);
 	for(int a = 0; a<numCommands; ++a)
 	{
 		if(orgCommands[a][0] == '@')
@@ -139,11 +139,11 @@ String GSM::request(int instruction)
 		++timeout;
 	}
 	String ret = String(buffer);
-	for(int a = 0; a<32; ++a)
-	{
-		Serial.print(buffer[a]);
-	}
-	Serial.println();
+	//for(int a = 0; a<32; ++a)
+	//{
+	//	Serial.print(buffer[a]);
+	//}
+	//Serial.println();
 	delete [] buffer;
 	return ret;
 }
