@@ -4,7 +4,6 @@
 void setup(){
   Wire.begin();
   Serial.begin(9600); 
-  //MyEEPROM.write(0x000, 'a', 1);
 }
 
 void loop()
@@ -19,7 +18,7 @@ void loop()
     if (i%256==0)
         Serial.println("Reading from Block: " + String(i/256));
 
-    MyEEPROM.read(adress, buffer, 1);
+    EEP.read(adress, buffer, 1);
     Serial.print(String(buffer));
     ++adress; 
     

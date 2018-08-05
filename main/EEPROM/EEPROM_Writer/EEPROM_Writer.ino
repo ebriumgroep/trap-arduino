@@ -11,10 +11,10 @@ void setup(){
   Serial.begin(9600);
   
   Serial.println("Writing to 0x000");
-  MyEEPROM.write(0x000, mystr0, sizeof(mystr0));
+  EEP.write(0x000, mystr0, sizeof(mystr0));
 
   Serial.println("Writing to 0x010");
-  MyEEPROM.write(0x010, mystr1, sizeof(mystr1));
+  EEP.write(0x010, mystr1, sizeof(mystr1));
 
  
 }
