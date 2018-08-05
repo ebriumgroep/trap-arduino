@@ -1,12 +1,19 @@
 //Import our Libraries
 #include "src/DHT.h"    // Temperature and Humidity Sensor
 #include "src/GSM.h"    // GSM Modem
-#include "src/Time.h"  // Time
+#include "src/Time.h"   // Time
 #include "src/GF.h"     // General Functions
+#include "src/EEP.h"    // Eeprom (External)
+#include <Wire.h>
+
 using namespace Funcs;
 
+// gsm initial values
 char adrs [] = "http://erbium.requestcatcher.com/test";
 char msg [] = "Startup Message";
+
+// eeprom hex adress
+int address = 0;
 
 GSM gsm(2, 3, adrs, msg);
 DHT dht(4, 22);
@@ -15,10 +22,12 @@ DHT dht(4, 22);
 enum state
 {
   SENSING_GENR, // Sensing General
-  SENSING_TEMP, // Sensing Temperature and Humidity
-  TRANSMITTING  // Transmitting Data
+  SENSING_TEMP, // Sensing Temperature
+  TRANSMITTING  // Transmitting
+  TRANS_GENERL  
+  TRANS_TEMPRA
 };
-state control = TRANSMITTING;
+state control = SENSING_GENR;
 
 // Sensor Constants and Variables
 const int SENSOR = 6, AMODEM = 7;
@@ -40,6 +49,9 @@ void setup()
 
   // Starts the temperature sensor
   dht.begin();
+
+  // Starts the i2c bus
+  Wire.begin();
 
   // Initialises the input pins
   pinMode(SENSOR, INPUT);
@@ -77,6 +89,21 @@ void loop()
   // Execute the tasks
   switch (control)
   {
+    case TRANS_GENERL:
+    {
+      int sta = 0, sto = 5, adr = 0;
+      char buf[1] = 0;
+      
+      for(int a=sta; a<sto; ++a)
+      {
+        EEP.read(adr, buf, 1);  
+      }
+      
+    }
+    case TRANS_TEMPRA:
+    {
+      //
+    }
     // False Codling Moths Sensor
     case SENSING_GENR:
       {     
@@ -85,8 +112,14 @@ void loop()
         if (!state)
         {
           Serial.println("found");
+          byte mystr[16];
+          dtostrf(now(), 16, 0, mystr);
+          EEP.write(address, mystr, sizeof(mystr));
+          address += 16;
+          if (address > 2432)
+            address = 0;
+          delay(1000);
         }
-        delay(100);
         break;
       }
     case SENSING_TEMP:
@@ -143,3 +176,4 @@ void loop()
       arrTranC[a] = 0;
   }
 }
+

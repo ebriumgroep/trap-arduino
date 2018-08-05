@@ -1,11 +1,9 @@
 #include <Wire.h>
 #include "src/EEP.h"
 
-
-
 void setup(){
-  byte mystr0[16] = "2018/02/21,03:34";
-  byte mystr1[16] = "2018/02/21,03:34";
+  byte mystr0[16] = "2018/02/21,03:22";
+  byte mystr1[16] = "2018/02/21,03:99";
   
   Wire.begin();
   Serial.begin(9600);
@@ -22,3 +20,5 @@ void setup(){
 void loop(){
 
 }
+
+

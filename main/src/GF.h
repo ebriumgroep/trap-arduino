@@ -17,7 +17,8 @@
 
 namespace Funcs
 {
-int hash(char text[]);							// Hashes a String using a ASCII addition and Mid-Square method
+
+int hash(char text[]);					// Hashes a String using a ASCII addition and Mid-Square method
 void encrypt(char text[], char key[]);			// Encrypts a text line with a 256-bit alphanumeric key, pass by reference
 void decrypt(char encrypted[], char key[]);		// Decrypts a text line with a 256-bit alphanumeric key, pass by reference
 }
