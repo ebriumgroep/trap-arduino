@@ -23,9 +23,9 @@ JQI - Strontium - UMD
 
 */
 
-#include "Arduino.h"
-#include <EEP.h>
-#include "Wire.h"
+#include <Arduino.h>
+#include "EEP.h"
+#include <Wire.h>
 
 // Write to EEPROM. The 24LC16B has 8 blocks of 256 bytes.
 // Thus, the memAddress needs 3 bits to specify the block (MSB), 
