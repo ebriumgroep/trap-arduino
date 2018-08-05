@@ -18,16 +18,16 @@ enum state
   SENSING_TEMP, // Sensing Temperature and Humidity
   TRANSMITTING  // Transmitting Data
 };
-state control = SENSING_GENR;
+state control = TRANSMITTING;
 
 // Sensor Constants and Variables
 const int SENSOR = 6, AMODEM = 7;
 
 // This should all be dynamically allocated in the setup function from the settings textfile
 // Only for current testing purposes
-int arrReadT[] =  {2, 4, 6, 8, 10};
+int arrReadT[] =  {1, 3, 5, 7, 9 };
 int arrReadC[] =  {0, 0, 0, 0, 0 };
-int arrTranD[] =  {1, 3, 5, 7, 9 };
+int arrTranD[] =  {2, 4, 6, 8, 10};
 int arrTranC[] =  {0, 0, 0, 0, 0 };
 
 // Pointers
@@ -48,16 +48,6 @@ void setup()
   // Initialises the day it was started
   start = new int;
   *start = day();
-
-  // Start the GSM modem
-  //while (!gsm.start())
-  //{
-      // Sends an test signal on startup
-      gsm.postRequest();
-  //}
-
-  // Turn the GSM modem off
-  gsm.gsmOff();
 }
 
 void loop()
@@ -89,37 +79,44 @@ void loop()
   {
     // False Codling Moths Sensor
     case SENSING_GENR:
-      {
+      {     
         bool state = false;
         state = digitalRead(SENSOR);
         if (!state)
         {
-          Serial.println("found");    // -> Save the state to file (See the Design Requirement Manual)
+          Serial.println("found");
         }
         delay(100);
         break;
       }
     case SENSING_TEMP:
       {
-        // Read the temperature/humidity and assign it to the GSM modem
+        Serial.println("SENSING_TEMP");
+        
         float t = dht.readTemperature();
-        float h = dht.readHumidity();
-        char* mes = &String(String(t) + String(",") + String(h))[0];
-        gsm.setMessage(mes);
-        Serial.println(mes); // -> Save the state to file (See the Design Requirement Manual)
+        //float h = dht.readHumidity();
 
+        char tem[8] = {0};
+        dtostrf(t, 6, 2, tem);
+
+        //char hum[8] = {0};
+        //dtostrf(h, 6, 2, hum);
+
+        gsm.setMessage(tem);
+        
         control = SENSING_GENR;
         break;
       }
     case TRANSMITTING:
       {
+        Serial.println("TRANSMITTING");
+        
         bool started = false;
         while (!started)
         {
           started = gsm.start();
         }
-
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
         if (gsm.postRequest())
         {
           if (gsm.readRequest())
@@ -131,8 +128,7 @@ void loop()
           }
           control = SENSING_GENR;
         }
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+        
         gsm.gsmOff();
         break;
       }

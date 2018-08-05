@@ -26,6 +26,7 @@ void GSM::setMessage(char me [])
 	int ha = hash(me);
 	//char* message = &String(String(ha)+String(",")+String(me))[0];
 	//encrypt(message, key);
+	//Serial.println(message);
 	String message = String(ha) + String(",") + String(me);
 	for(int a = 0; a<numCommands; ++a)
 	{
@@ -122,7 +123,7 @@ String GSM::request(int instruction)
 	}
 
 	Modem->println();
-	delay(100);
+	delay(2000);
 
 	while (!flag and timeout < 5)
 	{
