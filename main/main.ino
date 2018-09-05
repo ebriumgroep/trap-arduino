@@ -12,8 +12,12 @@ using namespace Funcs;
 char adrs [] = "http://erbium.requestcatcher.com/test";
 char msg [] = "Startup Message";
 
-// eeprom hex adress
-int address = 0;
+// eeprom hex adresses
+int addressW = 0;
+int addressR = 0;
+
+//eeprom comparison bool
+bool AddressWLower = false;
 
 GSM gsm(2, 3, adrs, msg);
 DHT dht(4, 22);
@@ -23,8 +27,8 @@ enum state
 {
   SENSING_GENR, // Sensing General
   SENSING_TEMP, // Sensing Temperature
-  TRANSMITTING  // Transmitting
-  TRANS_GENERL  
+  TRANSMITTING,  // Transmitting
+  TRANS_GENERL,  
   TRANS_TEMPRA
 };
 state control = SENSING_GENR;
@@ -92,7 +96,7 @@ void loop()
     case TRANS_GENERL:
     {
       int sta = 0, sto = 5, adr = 0;
-      char buf[1] = 0;
+      char buf[1] = {'0'};
       
       for(int a=sta; a<sto; ++a)
       {
@@ -114,10 +118,10 @@ void loop()
           Serial.println("found");
           byte mystr[16];
           dtostrf(now(), 16, 0, mystr);
-          EEP.write(address, mystr, sizeof(mystr));
-          address += 16;
-          if (address > 2432)
-            address = 0;
+          EEP.write(addressW, mystr, sizeof(mystr));
+          addressW += 16;
+          if (addressW > 2432)
+            addressW = 0;
           delay(1000);
         }
         break;
@@ -158,6 +162,8 @@ void loop()
             Serial.println("This is the output from the POST request");
             Serial.println(ans);
             Serial.println("Done....");
+
+            
           }
           control = SENSING_GENR;
         }
