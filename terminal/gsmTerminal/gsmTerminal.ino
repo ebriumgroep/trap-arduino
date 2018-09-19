@@ -35,7 +35,7 @@ void clearBufferArray()
 {
   for(int i=0;i<count;i++)
   {
-    buffer[i] = NULL;
+    buffer[i] = '\0';
   }
 }
 
