@@ -1,6 +1,8 @@
 #include <Wire.h>
 #include "src/EEP.h"
 
+//EERROM READER
+
 void setup(){
   Wire.begin();
   Serial.begin(9600); 
@@ -10,7 +12,7 @@ void loop()
 {
   char buffer[1];
   int adress = 0x000;
-  for(int i = 0; i < 2048; ++i)
+  for(int i = 0; i < 2048; ++i)     //2048 TO READ THE ENTIRE EEPROM
   {
     if (i%16==0)
       Serial.println();

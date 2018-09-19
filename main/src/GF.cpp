@@ -70,4 +70,31 @@ void decrypt(char encrypted [], char key [])
       i = -1;
   }
 }
+
+
+void floatToChar(float num, char buff[])
+{
+  float num2;
+  int num3, count = 0;
+  char num4;
+  buff[0] = '0';
+
+  for (int i = 3; i > -2; i--)
+  {
+    num2 = num / (pow(10, i));
+    num3 = (int) num2;
+    num3 = num3 % 10;
+    num4 = (char) num3;
+    if (num4 != '0' || buff[0] != '0')
+    {
+      buff[count] = num4;
+      count++;
+    }
+    if (i == 0)
+    {
+      buff[count] = '.';
+      count++;
+    }
+  }
+}
 }

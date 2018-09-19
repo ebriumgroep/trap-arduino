@@ -10,41 +10,31 @@ using namespace Funcs;
 
 // gsm initial values
 char adrs [] = "http://erbium.requestcatcher.com/test";
-char msg [] = "Startup Message";
+GSM gsm(2, 3);
+DHT dht(4, 22);
+
+// Has the modem been started
+bool started = false;
 
 // eeprom hex adresses
-int addressW = 0;
-int addressR = 0;
+int addressMW = 0x000;
+int addressMR = 0x000;
+int addressTW = 0x000;
+int addressTR = 0x000;
 
 //eeprom comparison bool
 bool AddressWLower = false;
 
-GSM gsm(2, 3, adrs, msg);
-DHT dht(4, 22);
-
-// The state of the system
-enum state
-{
-  SENSING_GENR, // Sensing General
-  SENSING_TEMP, // Sensing Temperature
-  TRANSMITTING,  // Transmitting
-  TRANS_GENERL,  
-  TRANS_TEMPRA
-};
-state control = SENSING_GENR;
+//buffer length const
+int buflen = 16;
+int dBuflen = 32;
 
 // Sensor Constants and Variables
-const int SENSOR = 6, AMODEM = 7;
+const int SENSOR = 6, AMODEM = 7, EEPMOTH = 10, EEPTEMP = 11;
 
-// This should all be dynamically allocated in the setup function from the settings textfile
-// Only for current testing purposes
-int arrReadT[] =  {1, 3, 5, 7, 9 };
-int arrReadC[] =  {0, 0, 0, 0, 0 };
-int arrTranD[] =  {2, 4, 6, 8, 10};
-int arrTranC[] =  {0, 0, 0, 0, 0 };
-
-// Pointers
-int *start;
+// Temp
+int trigger[2] = {1,1};
+int completed[2] = {1,0};
 
 void setup()
 {
@@ -60,126 +50,176 @@ void setup()
   // Initialises the input pins
   pinMode(SENSOR, INPUT);
   pinMode(AMODEM, OUTPUT);
+  pinMode(EEPMOTH, OUTPUT);
+  pinMode(EEPTEMP, OUTPUT);
+}
 
-  // Initialises the day it was started
-  start = new int;
-  *start = day();
+void moth_sense()
+{
+  bool state = false;
+  state = digitalRead(SENSOR);
+  if (!state)
+  {
+    Serial.println("FOUND");                          // Afvoer as die program 'n mot vang
+    byte mystr[16];
+    dtostrf(now(), 16, 0, mystr);
+    EEP.write(addressMW, mystr, sizeof(mystr));
+    addressMW += 16;
+    if (addressMW > 2048)
+      addressMW = 0;
+    delay(1000);
+   }
+}
+
+void temp_sense()
+{
+    Serial.println("SENSING_TEMP");
+          
+    float t = dht.readTemperature();
+    char tStr[6];
+    Serial.println(t);
+          
+    byte strTemp[32];
+    dtostrf(now(), 16, 0, strTemp);
+    strTemp[16] = ',';
+    floatToChar(t, tStr);
+    for (int i = 0; i < 6 && i < sizeof(strTemp); i++)
+    {
+      strTemp[i + 17] = tStr[i];
+    }
+    digitalWrite(EEPTEMP, 1);
+    EEP.write(addressTW, strTemp, sizeof(strTemp));
+    addressTW += 32;
+    if (addressTW > 2048)                               //2432
+      addressTW = 0;   
+}
+
+void transmitRun()
+{
+    Serial.println("IN TRANSMISSION");                   // Afvoer as die program begin om data te stuur
+    while (!started)
+    {
+      started = gsm.start();
+    }
+    bool posted = false;
+    while (!posted)
+    {
+      if (gsm.postRequest())
+      {
+        if (gsm.readRequest())
+        {
+          String ans = gsm.getAnswer();
+          Serial.println("This is the output from the POST request");
+          Serial.println(ans);
+          if (ans = "Request caught")
+          {
+            posted = true;
+            Serial.println("Done with transmission.");
+          }
+          else
+          {
+            Serial.println("Error in transmission, retrying...");
+          }
+        }
+      }
+    }
+}
+
+void transmit_moth()
+{
+   Serial.println("TRANSMITTING: MOTH_COUNT");    // Afvoer as die program begin om data te stuur oor motte
+  
+   char output[17];                       // Transmission variable
+   output[16] = '\0';                     // Null termination for transmission
+
+   // Enkel bit veranderlike
+   char buffer[1];  
+
+   for(int h = 0; h < 5; ++h)             // Die "5" verteenwoordig die aantal lyne wat die program moet transmit. Dit is tydelik en moet verander word sodra ons data van die server kan kry
+   {    
+      for(int i = 0; i < buflen; ++i)         // Lees een lyn van 16 bits
+      {
+        EEP.read(addressMR, buffer, 1);
+        ++addressMR; 
+
+        if (buffer[0] != ' ')             // Vervang lee waardes met 'n nul
+        {
+          output[i] = buffer[0];
+        }
+        else
+        {
+          output[i] = '0';
+        }
+      }
+      // Testing
+      Serial.print("Data: ");
+      Serial.println(output);
+
+      gsm.setMessage(output, false);
+      transmitRun(); 
+
+      Serial.println("Done............");
+      delay(500);
+   }  
+}
+
+void transmit_temp()
+{
+   Serial.println("TRANSMITTING: TEMPERATURE");    // Afvoer as die program begin om data te stuur oor motte
+
+   char output[17];                       // Transmission variable
+   output[16] = '\0';                     // Null termination for transmission
+
+   // Enkel bit veranderlike
+   char buffer[1];  
+
+   for(int h = 0; h < 5; ++h)             // Die "5" verteenwoordig die aantal lyne wat die program moet transmit. Dit is tydelik en moet verander word sodra ons data van die server kan kry
+   {    
+      for(int i = 0; i < 16; ++i)         // Lees een lyn van 16 bits
+      {
+        EEP.read(addressTR, buffer, 1);
+        ++addressTR; 
+
+        if (buffer[0] != ' ')             // Vervang lee waardes met 'n nul
+        {
+          output[i] = buffer[0];
+        }
+        else
+        {
+          output[i] = '0';
+        }
+      }
+      // Testing
+      Serial.print("Data: ");
+      Serial.println(output);
+
+      gsm.setMessage(output, false);
+      transmitRun(); 
+
+      Serial.println("Done............");
+      delay(1000);
+   }  
 }
 
 void loop()
 {
-  // Is it time to sense for temperature
-  for (int a = 0; a < 5; a++)
+  moth_sense();
+  
+  if(((now() % (trigger[0]*(3600/60))) == 0) && (completed[0] == 0))
   {
-    if ((minute() == arrReadT[a]) and (arrReadC[a] == 0))
-    {
-      control = SENSING_TEMP;
-      arrReadC[a] = 1;
-      break;
-    }
+    temp_sense();
+    completed[0] = 1;
   }
 
-  // Is it time to transmit data
-  for (int a = 0; a < 5; a++)
+  if(((now() % (trigger[1]*(3600/60))) == 0) && (completed[1] == 0))
   {
-    if ((minute() == arrTranD[a]) and (arrTranC[a] == 0))
-    {
-      control = TRANSMITTING;
-      arrTranC[a] = 1;
-      break;
-    }
-  }
-
-  // Execute the tasks
-  switch (control)
-  {
-    case TRANS_GENERL:
-    {
-      int sta = 0, sto = 5, adr = 0;
-      char buf[1] = {'0'};
-      
-      for(int a=sta; a<sto; ++a)
-      {
-        EEP.read(adr, buf, 1);  
-      }
-      
-    }
-    case TRANS_TEMPRA:
-    {
-      //
-    }
-    // False Codling Moths Sensor
-    case SENSING_GENR:
-      {     
-        bool state = false;
-        state = digitalRead(SENSOR);
-        if (!state)
-        {
-          Serial.println("found");
-          byte mystr[16];
-          dtostrf(now(), 16, 0, mystr);
-          EEP.write(addressW, mystr, sizeof(mystr));
-          addressW += 16;
-          if (addressW > 2432)
-            addressW = 0;
-          delay(1000);
-        }
-        break;
-      }
-    case SENSING_TEMP:
-      {
-        Serial.println("SENSING_TEMP");
-        
-        float t = dht.readTemperature();
-        //float h = dht.readHumidity();
-
-        char tem[8] = {0};
-        dtostrf(t, 6, 2, tem);
-
-        //char hum[8] = {0};
-        //dtostrf(h, 6, 2, hum);
-
-        gsm.setMessage(tem);
-        
-        control = SENSING_GENR;
-        break;
-      }
-    case TRANSMITTING:
-      {
-        Serial.println("TRANSMITTING");
-        
-        bool started = false;
-        while (!started)
-        {
-          started = gsm.start();
-        }
-        
-        if (gsm.postRequest())
-        {
-          if (gsm.readRequest())
-          {
-            String ans = gsm.getAnswer();
-            Serial.println("This is the output from the POST request");
-            Serial.println(ans);
-            Serial.println("Done....");
-
-            
-          }
-          control = SENSING_GENR;
-        }
-        
-        gsm.gsmOff();
-        break;
-      }
-  }
-
-  if (day() != *start)
-  {
-    *start = day();
-    for (int a = 0; a < 5; a++)
-      arrReadC[a] = 0;
-    for (int a = 0; a < 1; a++)
-      arrTranC[a] = 0;
+    transmit_moth();
+    transmit_temp();
+    
+    Serial.println();
+    Serial.println("DATA TRANSMISSION COMPLETED!");
+    
+    completed[1] = 1;
   }
 }
 

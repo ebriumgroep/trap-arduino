@@ -22,45 +22,41 @@ using namespace Funcs;
 class GSM
 {
 private:
-		// Constant Data
-		static const int numCommands = 11;
-		String orgCommands[numCommands] = {"AT", "AT+CSQ", "AT+CPIN?", "AT+CREG?",
-						"AT+QIFGCNT=0", "AT+QICSGP=1,\"internet\"", "@A", "@U", "@B", "@M", "AT+QHTTPREAD=50"};
-		String commands[numCommands];
-		int startupSet[5] = {0, 0, 2, 3, -1};            	// The commands to execute in sequence to start the GSM modem
-		int postRequestSet[7] = {4, 5, 6, 7, 8, 9, -1};  	// The commands to execute in sequence to do a post request to an server
-		int readRequestSet[2] = {10, -1};		 			// The commands to execute in sequence to read an server response
+		// AT-Commands
+		const int numCommands = 14;
+		char mes[37];
+		char ans[10];
+		
+		// Command-Sets
+		int startupSet[5] = {0, 1, 2, 3, -1};      						// The commands to execute in sequence to start the GSM modem
+		int postRequestSet[7] = {4, 5, 6, 7, 8, 9, -1};  				// The commands to execute in sequence to do a post request to an server
+		int readRequestSet[2] = {10, -1};			 					// The commands to execute in sequence to read an server response
 
 		// Internal Variables
 		SoftwareSerial *Modem;
-		String answer = "";
 		char key [32] = {'B','N','+','u','Z','a','4','{','$','t','S','=','{','=','F','#','p','R','f','l','x',':','}','(',')','n','7','@','s','M','&','8'};
 
 		// Internal Methods
-		String request(int);			// Execute an single command from the commands array
-		bool execute(int [], bool);		// Execute a list of functions with the request method
-		bool resolve(int);				// Resolves error codes
-		int arrLength(int []);			// Determine the length of an array
-		int check(String);				// Checks for error codes in the output
-		bool isOn();					// Checks if the GSM modem is on
+		char* request(int);							// Execute an single command from the commands array
+		void execute(int [], bool);					// Execute a list of functions with the request method
+		int arrLength(int []);						// Determine the length of an array
+		int check(char []);							// Checks for error codes in the output
+		bool isOn();								// Checks if the GSM modem is on
 		
 public:
-
-		// Getter Methods
-		String getAnswer();				// Under Construction
-
-		// Setter Methods
-		void setMessage(char []);		// Under Construction
+		void setMessage(const char [], bool);		//
 
 		// Control Methods
-		void gsmOn();					// Turns the GSM modem on
-		void gsmOff();					// Turns the GSM modem off
-		bool start();					// Done		
-		bool postRequest();				// Done
-		bool readRequest();				// Under Construction
+		void gsmOn();								// Turns the GSM modem on
+		void gsmOff();								// Turns the GSM modem off
+		bool start();								//		
+		bool postRequest();							//
+		bool readRequest();							//
 
 		// Constructor
-		GSM(int, int, char [], char []);// Done
+		GSM(int, int);								// Done
+		
+		char* getAnswer();							//
 };
 
 #endif
