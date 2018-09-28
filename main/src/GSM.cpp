@@ -19,7 +19,7 @@ char* GSM::getAnswer()
 
 void GSM::setMessage(const char me [], bool db = false)
 {	
-	char ha[3];
+	/*char ha[3];
 	itoa(hash(me),ha,10);
 	
 	for(int a =  0; a < 16; ++a)
@@ -38,7 +38,12 @@ void GSM::setMessage(const char me [], bool db = false)
 	for(int c = 34; c < 37; ++c)
 		mes[c] = ha[c-34];
 	
-	mes[37] = '\0';
+	mes[37] = '\0';*/
+	for (int i = 0; i < arrLength(me) || i < 37; i++)
+	{
+		mes[i] = me[i];	
+	}
+	//mes = me;
 	
 	// test output of the message
 	Serial.println(mes);
@@ -52,20 +57,23 @@ GSM::GSM(int tx, int rx)
 
 char* GSM::request(int instruction)
 {
-	char eepCommands[11][25] = {"AT", "AT+CSQ", "AT+CPIN?", "AT+CREG?", "AT+QIFGCNT=0", "AT+QICSGP=1,\"internet\"", "AT+QHTTPURL=37,50", "@U", "AT+QHTTPPOST=37,50,10", "@M", "AT+QHTTPREAD=30"};
-	char url[38] = "http://erbium.requestcatcher.com/test";
-	
-	char command[40];
+	//char eepCommands[11][25] = {"AT", "AT+CSQ", "AT+CPIN?", "AT+CREG?", "AT+QIFGCNT=0", "AT+QICSGP=1,\"internet\"", "AT+QHTTPURL=37,50", "@U", "AT+QHTTPPOST=37,50,10", "@M", "AT+QHTTPREAD=30"};
+	char eepCommands[11][25] = {"AT", "AT+CSQ", "AT+CPIN?", "AT+CREG?", "AT+QIFGCNT=0", "AT+QICSGP=1,\"internet\"", "AT+QHTTPURL=48,60", "@U", "AT+QHTTPPOST=19,60,30", "@M", "AT+QHTTPREAD=30"};
+	//2018/04/26,13:10,5
+	//char url[38] = "http://erbium.requestcatcher.com/test";
+	char url[49] = "http://erbium.000webhostapp.com/recordInsect.php";
+	char cmeError[17] = "+CME ERROR: 3822";
+	char command[64];
 	if(eepCommands[instruction][0] == '@')
 	{
 		switch(eepCommands[instruction][1])
 		{
 			case 'U':
-				for(int a = 0; a < 38; ++a)
+				for(int a = 0; a < 49; ++a)
 					command[a] = url[a];
 				break;
 			case 'M':
-				for(int a = 0; a < 37; ++a)
+				for(int a = 0; a < 19; ++a)			//37
 					command[a] = mes[a];
 				break;				
 		}
@@ -75,6 +83,8 @@ char* GSM::request(int instruction)
 		for(int a = 0; a < 25; ++a)
 			command[a] = eepCommands[instruction][a];
 	}
+	//Serial.print("Command: ");
+	//Serial.println(command);
 
 	int count = 0, i = 0;
 	char *buffer = new char [64];
@@ -89,8 +99,8 @@ char* GSM::request(int instruction)
 		++i;
 	}
 	Modem->println();
-	
-	while(check(buffer) != -1)
+	int c = 0;
+	while(check(buffer) != -1 && c < 10)
 	{		
 		while(Modem->available())
 		{
@@ -98,13 +108,27 @@ char* GSM::request(int instruction)
 			if (count == 64)
 				break;
 		}
-		
+		count = 0;
+		//Serial.println(buffer);
+		while(buffer[count] == cmeError[count])
+		{
+			count++;
+			if (count == 17)
+			{
+				return buffer;
+			}
+		}
 		count = 0;
 		Modem->flush();
 	
 		Serial.println("stuck...");
-	
+		c++;
 		delay(500);
+	}
+	if (c >= 30)
+	{
+		buffer[0] = '0';
+		return buffer;
 	}
 	return buffer;
 }
@@ -112,9 +136,11 @@ char* GSM::request(int instruction)
 void GSM::execute(int set[], bool read = false)
 {
 	char *output;
-	int process = 0, errorCode = -1;
+	int process = 0, errorCode = -1, cmeRe = 10, count = 0;
+	char cmeError[17] = "+CME ERROR: 3822";
+	bool error = false;
 	
-	while (process < arrLength(set))
+	while (process < arrLength(set) || error)
 	{
 		output = request(set[process]);
 		
@@ -124,8 +150,35 @@ void GSM::execute(int set[], bool read = false)
 		Serial.println();
 		Serial.println("**********");
 	
-		//if(read) ans = output;
+		if(read)
+		{
+			for (int i = 0; i < arrLength(output) && i < 40; i++)
+			{
+				ans[0] = output[i + 30];
+				if (ans[0] == '0' || ans[0] == '1')
+				{
+					break;
+				}
+				//Serial.println(ans);
+			}
+			
+		} 
 		
+		while (count < 17 && output[count] == cmeError[count])
+		{
+			count++;
+		}	
+		if (count == 15 && cmeRe > 0)
+		{
+			error = true;
+			cmeRe--;
+		}
+		else
+		{
+			error = false;
+		}
+
+		count = 0;
 		delete [] output;
 		
 		++process;
@@ -139,6 +192,17 @@ int GSM::arrLength(int arr[])
 	{
 		++i;
 	}
+	return i;
+}
+
+int GSM::arrLength(char *arr)
+{
+	int i = 0;
+	while (arr[i] != '\0')
+	{
+		++i;
+	}
+	++i;
 	return i;
 }
 

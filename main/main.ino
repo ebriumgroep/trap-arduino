@@ -5,7 +5,7 @@
 #include "src/GF.h"     // General Functions
 #include "src/EEP.h"    // Eeprom (External)
 #include <Wire.h>
-
+#include <String.h>
 using namespace Funcs;
 
 // gsm initial values
@@ -52,6 +52,10 @@ void setup()
   pinMode(AMODEM, OUTPUT);
   pinMode(EEPMOTH, OUTPUT);
   pinMode(EEPTEMP, OUTPUT);
+
+  //Testing data
+  char mothDataTest[10][19] = {"2015/01/01,08:10,3","2015/02/10,10:30,5","2015/03/20,12:20,2","2016/05/11,16:59,3","2016/06/30,22:30,5","2016/07/26,13:00,3",
+                                "2017/08/07,13:10,3","2017/09/14,00:17,2","2018/10/31,15:15,2","2018/12/26,13:10,5"}; 
 }
 
 void moth_sense()
@@ -108,10 +112,10 @@ void transmitRun()
       {
         if (gsm.readRequest())
         {
-          String ans = gsm.getAnswer();
+          char* ans = gsm.getAnswer();
           Serial.println("This is the output from the POST request");
-          Serial.println(ans);
-          if (ans = "Request caught")
+          Serial.println(ans[0]);
+          if (ans[0] == '1')
           {
             posted = true;
             Serial.println("Done with transmission.");
@@ -129,7 +133,7 @@ void transmit_moth()
 {
    Serial.println("TRANSMITTING: MOTH_COUNT");    // Afvoer as die program begin om data te stuur oor motte
   
-   char output[17];                       // Transmission variable
+   /*char output[17];                       // Transmission variable
    output[16] = '\0';                     // Null termination for transmission
 
    // Enkel bit veranderlike
@@ -150,17 +154,37 @@ void transmit_moth()
         {
           output[i] = '0';
         }
-      }
+      }*/
       // Testing
-      Serial.print("Data: ");
+      //char output[19] = "2018/04/26,13:10,5";
+      char input[19] = "2018/04/26,13:10,5";
+      //String output = "2018/04/26,13:10,5";
+      /*for (int i = 0; i < 19; i++)
+      {
+        input[i] = output[i];
+      }*/
+      for (int i = 0; i < 10; i++)
+      { 
+        //mothDataTest[i][19]
+        input[15] = (char)(i + 48);
+        //strcpy(input, output.c_str());
+        Serial.print("Data: ");
+        Serial.println(input);
+         gsm.setMessage(input, false);
+        delay(10000);
+        //Serial.print("B");
+        transmitRun(); 
+      }
+      /*Serial.print("Data: ");
       Serial.println(output);
-
-      gsm.setMessage(output, false);
-      transmitRun(); 
+        gsm.setMessage(output, false);
+        delay(10000);
+        transmitRun();*/
+     
 
       Serial.println("Done............");
       delay(500);
-   }  
+   //}  
 }
 
 void transmit_temp()
@@ -214,7 +238,7 @@ void loop()
   if(((now() % (trigger[1]*(3600/60))) == 0) && (completed[1] == 0))
   {
     transmit_moth();
-    transmit_temp();
+    //transmit_temp();
     
     Serial.println();
     Serial.println("DATA TRANSMISSION COMPLETED!");

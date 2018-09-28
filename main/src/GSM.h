@@ -25,7 +25,7 @@ private:
 		// AT-Commands
 		const int numCommands = 14;
 		char mes[37];
-		char ans[10];
+		char ans[64];
 		
 		// Command-Sets
 		int startupSet[5] = {0, 1, 2, 3, -1};      						// The commands to execute in sequence to start the GSM modem
@@ -40,6 +40,7 @@ private:
 		char* request(int);							// Execute an single command from the commands array
 		void execute(int [], bool);					// Execute a list of functions with the request method
 		int arrLength(int []);						// Determine the length of an array
+		int arrLength(char*);						// Overload function for char array
 		int check(char []);							// Checks for error codes in the output
 		bool isOn();								// Checks if the GSM modem is on
 		
