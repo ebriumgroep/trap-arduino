@@ -12,212 +12,178 @@ https://github.com/ebriumgroep/trap-arduino
 
 #include "GSM.h"
 
+#ifndef DEBUG
+    #define Debugln(a)
+    #define Debug(a)
+#else
+    #define Debugln(a) Serial.println(a)
+    #define Debug(a) Serial.print(a)
+#endif    
+
 char* GSM::getAnswer()
 {
 	return ans;
 }
 
 void GSM::setMessage(const char me [], bool db = false)
-{	
-	/*char ha[3];
-	itoa(hash(me),ha,10);
-	
-	for(int a =  0; a < 16; ++a)
-		mes[a] = me[a];
-	
-	mes[16] = ',';
-	
-	for(int b = 17; b < 33; ++b)
-		if(db)
-			mes[b] = me[b-1];
-		else
-			mes[b] = 'x';
-	
-	mes[33] = ',';
-	
-	for(int c = 34; c < 37; ++c)
-		mes[c] = ha[c-34];
-	
-	mes[37] = '\0';*/
-	for (int i = 0; i < arrLength(me) || i < 37; i++)
-	{
-		mes[i] = me[i];	
-	}
-	//mes = me;
-	
-	// test output of the message
-	Serial.println(mes);
+{
+    memset(mes, 0, MESS_LEN);
+	strncpy(mes, me, MESS_LEN - 1);
+	Debugln(mes);
 }
 
-GSM::GSM(int tx, int rx)
-{	
-	Modem = new SoftwareSerial(tx, rx);
-	Modem->begin(9600);
+GSM::GSM(byte tx, byte rx)
+{
+    Modem = new SoftwareSerial(tx, rx);
+    Modem->begin(9600);
 }
 
-char* GSM::request(int instruction)
+char* GSM::request(const byte& instruction)
 {
 	//char eepCommands[11][25] = {"AT", "AT+CSQ", "AT+CPIN?", "AT+CREG?", "AT+QIFGCNT=0", "AT+QICSGP=1,\"internet\"", "AT+QHTTPURL=37,50", "@U", "AT+QHTTPPOST=37,50,10", "@M", "AT+QHTTPREAD=30"};
-	char eepCommands[11][25] = {"AT", "AT+CSQ", "AT+CPIN?", "AT+CREG?", "AT+QIFGCNT=0", "AT+QICSGP=1,\"internet\"", "AT+QHTTPURL=48,60", "@U", "AT+QHTTPPOST=19,60,30", "@M", "AT+QHTTPREAD=30"};
+	const char eepCommands[11][23] = {"AT", "AT+CSQ", "AT+CPIN?", "AT+CREG?", 
+
+"AT+QIFGCNT=0", 
+"AT+QICSGP=1,\"internet\"", 
+"AT+QHTTPURL=48,60", 
+"@U", 
+"AT+QHTTPPOST=19,60,30", 
+"@M", 
+
+                                "AT+QHTTPREAD=30"};
 	//2018/04/26,13:10,5
 	//char url[38] = "http://erbium.requestcatcher.com/test";
-	char url[49] = "http://erbium.000webhostapp.com/recordInsect.php";
-	char cmeError[17] = "+CME ERROR: 3822";
-	char command[64];
-	if(eepCommands[instruction][0] == '@')
-	{
-		switch(eepCommands[instruction][1])
-		{
+	const char url[] = "http://erbium.000webhostapp.com/recordInsect.php";
+	const char cmeError[] = "+CME ERROR: 3822";
+
+	char command[CMD_LEN];
+    memset(command, 0, CMD_LEN);
+
+    Debugln(F("Yoh2"));
+	if(eepCommands[instruction][0] == '@') {
+		switch(eepCommands[instruction][1]) {
 			case 'U':
-				for(int a = 0; a < 49; ++a)
-					command[a] = url[a];
+                strncpy(command, url, CMD_LEN - 1);
 				break;
 			case 'M':
-				for(int a = 0; a < 19; ++a)			//37
-					command[a] = mes[a];
+                strncpy(command, mes, CMD_LEN - 1);
 				break;				
 		}
-	}
-	else
-	{
-		for(int a = 0; a < 25; ++a)
-			command[a] = eepCommands[instruction][a];
-	}
-	//Serial.print("Command: ");
-	//Serial.println(command);
+	} else {
+        strncpy(command, eepCommands[instruction], CMD_LEN - 1);
+    }
+	Serial.print(F("Command: "));
+	Serial.println(command);
 
-	int count = 0, i = 0;
-	char *buffer = new char [64];
+	byte count = 0;
+	char *buffer = new char [BUFF_LEN];
+    memset(buffer, 0, BUFF_LEN);
 
-	for (int a = 0; a < 64; ++a)
-		buffer[a] = '#';
-	
-	while(command[i] != '\0')
-	{
-		byte b = command[i];
-		Modem->write(b);
-		++i;
-	}
+    byte size = strlen(command);
+    for (byte i = 0; i < size; ++i) {
+        Modem->write(command[i]);
+    }
+
 	Modem->println();
-	int c = 0;
-	while(check(buffer) != -1 && c < 10)
-	{		
-		while(Modem->available())
-		{
-			buffer[count++] = Modem->read();
-			if (count == 64)
-				break;
-		}
-		count = 0;
-		//Serial.println(buffer);
-		while(buffer[count] == cmeError[count])
-		{
-			count++;
-			if (count == 17)
-			{
-				return buffer;
-			}
-		}
-		count = 0;
-		Modem->flush();
-	
-		Serial.println("stuck...");
-		c++;
-		delay(500);
-	}
-	if (c >= 30)
-	{
-		buffer[0] = '0';
-		return buffer;
-	}
+
+    Serial.print(F("Bufer: "));
+    Serial.println(buffer);
+    Serial.print(F("Check: "));
+    Serial.println((int)check(buffer));
+    if (check(buffer) != -1) {
+        for (byte i = 1; i < 10; ++i) {
+            while (Modem->available() && strlen(buffer) < BUFF_LEN) {
+                char read[2];
+                memset(read, 0, 2);
+                read[0] = Modem->read();
+                strncat(buffer, read, BUFF_LEN - strlen(buffer) - 1);
+            }
+            Serial.print(F("Buffer: "));
+            Serial.println(buffer);
+
+            if (strstr(buffer, cmeError) == NULL) {
+                return buffer;
+            }
+            Modem->flush();
+            delay(500);
+        }
+    }
 	return buffer;
 }
 
-void GSM::execute(int set[], bool read = false)
+
+#ifdef __arm__
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char *__brkval;
+#endif  // __arm__
+
+int freeMemory() {
+  char top;
+#ifdef __arm__
+  return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+  return &top - __brkval;
+#else  // __arm__
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
+}
+
+void GSM::execute(byte set[], byte size, bool read = false)
 {
 	char *output;
-	int process = 0, errorCode = -1, cmeRe = 10, count = 0;
-	char cmeError[17] = "+CME ERROR: 3822";
+	byte process = 0, count = 0;
+	//char cmeError[] = "+CME ERROR: 3822";
+	char cmeError[] = "+CME ERROR";
 	bool error = false;
 	
-	while (process < arrLength(set) || error)
-	{
-		output = request(set[process]);
-		
-		Serial.println("**********");
-		for(int a = 0; a<64; ++a)
-			Serial.print(output[a]);
-		Serial.println();
-		Serial.println("**********");
-	
-		if(read)
-		{
-			for (int i = 0; i < arrLength(output) && i < 40; i++)
-			{
-				ans[0] = output[i + 30];
-				if (ans[0] == '0' || ans[0] == '1')
-				{
-					break;
-				}
-				//Serial.println(ans);
-			}
-			
-		} 
-		
-		while (count < 17 && output[count] == cmeError[count])
-		{
-			count++;
-		}	
-		if (count == 15 && cmeRe > 0)
-		{
-			error = true;
-			cmeRe--;
-		}
-		else
-		{
-			error = false;
-		}
+    for (byte i = 0; i < size; ++i) {
+        bool error = true;
+        Serial.print(F("Execute: "));
+        Serial.println(i);
+        for (byte retry = 0; retry < MAX_RETRY && error; ++retry) {
+            if (retry > 0) {
+                Serial.print(F("Retrying "));
+            }
+            Serial.print("set: ");
+            Serial.println(set[i]);
 
-		count = 0;
-		delete [] output;
-		
-		++process;
-	}
-}
+            //execute eep command and record output
+            output = request(set[i]);
+            Serial.println(F("Response: "));
+            Serial.println(output);
 
-int GSM::arrLength(int arr[])
-{
-	int i = 0;
-	while (arr[i] != -1)
-	{
-		++i;
-	}
-	return i;
-}
+            if (strstr(output, cmeError) == NULL) {
+                Serial.println(F("No Error"));
+                if (read) {
+                    memset(ans, 0, ANSW_LEN);
+                    strncpy(ans, output, ANSW_LEN - 1);
+                }
+                error = false;
+            } else {
+                //TODO appropriate action when an error is returned as response
+                Serial.println(F("Resp Err"));
+            }
 
-int GSM::arrLength(char *arr)
-{
-	int i = 0;
-	while (arr[i] != '\0')
-	{
-		++i;
-	}
-	++i;
-	return i;
+            delete [] output;
+        }
+        if (error) {
+            Serial.println(F("Max retries reached."));
+            break;
+        }
+    }
+    //
+    Serial.println(F("FREEE"));
 }
 
 bool GSM::isOn()
 {
-	if (check(request(0)) == -1)
-		return true;
-	else
-		return false;
+    return (check(request(0)) == -1);
 }
 
 void GSM::gsmOn()
 {
-	if (!isOn())
-	{
+	if (!isOn()) {
 		digitalWrite(7, HIGH);
 		delay(1000); // 800 also works, but 1000 is safe
 		digitalWrite(7, LOW);
@@ -227,8 +193,7 @@ void GSM::gsmOn()
 
 void GSM::gsmOff()
 {
-	if (isOn())
-	{
+	if (isOn()) {
 		digitalWrite(7, HIGH);
 		delay(1000); // 800 also works, but 1000 is safe
 		digitalWrite(7, LOW);
@@ -236,55 +201,55 @@ void GSM::gsmOff()
 	}
 }
 
-int GSM::check(char ret [])
+char GSM::check(char ret [])
 {
-	int result = 0;
+    if (strlen(ret) == 0) {
+        return -1;
+    }
+    if (!strstr(ret, ">")) {
+        return -1;
+    }
 
-	for (int a = 0; a < 32; ++a)
-	{
-		// SMS MESSAGE
-		if (ret[a] == '>')
-		{
-			result = -1;
-			break;
-		}
-		// OK MESSAGE
-		if (ret[a] == 'O')
-			if (ret[a + 1] == 'K')
-			{
-				result = -1;
-				break;
-			}
-		// CONNECT MESSAGE
-		if (ret[a] == 'C')
-			if (ret[a + 1] == 'O')
-				if (ret[a + 2] == 'N')
-					if (ret[a + 3] == 'N')
-						if (ret[a + 4] == 'E')
-							if (ret[a + 5] == 'C')
-								if (ret[a + 6] == 'T')
-								{
-									result = -1;
-									break;
-								}
-	}
-	return result;
+    if (!strstr(ret, "OK")) {
+        return -1;
+    }
+
+    if (!strstr(ret, "CONNECT")) {
+        return -1;
+    }
+
+    return 0;
 }
+
+// Start sequence length
+#define START_LEN 4
 
 bool GSM::start()
 {
-	execute(startupSet);
+    Serial.println(F("\nSTART"));
+    byte startupSet[START_LEN] = {0, 1, 2, 3};
+	execute(startupSet, START_LEN);
 	return true;
 }
+
+// Post sequence length
+#define POST_LEN 6
 
 bool GSM::postRequest()
 {
-	execute(postRequestSet);
+    Serial.println(F("\nPOST"));
+    byte postRequestSet[POST_LEN] = {4, 5, 6, 7, 8, 9};
+	execute(postRequestSet, POST_LEN);
 	return true;
 }
 
+// Start sequence length
+#define READ_LEN 1
+
 bool GSM::readRequest()
 {
-	execute(readRequestSet, true);
+    Serial.println(F("\nREAD"));
+    byte readRequestSet[READ_LEN] = {10};
+	execute(readRequestSet, READ_LEN, true);
 	return true;
 }
