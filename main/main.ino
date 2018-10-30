@@ -74,8 +74,10 @@ void setup()
     // Initialises the input pins
     pinMode(SENSOR, INPUT);
     pinMode(AMODEM, OUTPUT);
-    pinMode(EEPMOTH, OUTPUT);
-    pinMode(EEPTEMP, OUTPUT);
+//    pinMode(EEPMOTH, OUTPUT);
+//    pinMode(EEPTEMP, OUTPUT);
+    pinMode(12, OUTPUT); // moth eeprom
+    pinMode(11, OUTPUT); // temp eeprom
 
     //Testing data
     /*
@@ -85,6 +87,37 @@ void setup()
                                  "2017/08/07,13:10,3","2017/09/14,00:17,2",
                                  "2018/10/31,15:15,2","2018/12/26,13:10,5"}; 
                                  */
+
+    // TODO add device setup functionality.
+    //deviceSetup();
+}
+
+/**
+ * Retreive settings and request time.
+ **/
+void deviceSetup()
+{
+    char url[20] = "www.placeholder.a";
+    bool settings = false;
+    while (!settings) {
+        bool posted = false;
+        while (!gsm.start()) {}
+
+        for (byte i = 0; i < 3; ++i) {
+            if (gsm.postRequest(url, "G")) {
+                posted = true;
+                break;
+            }
+        }
+
+        if (posted) {
+            char* response = gsm.readResponse();
+
+            for (byte k = 0; response != NULL && k < strlen(response); ++k) {
+                // TODO loop through the response and set settings
+            }
+        }
+    }
 }
 
 /**
@@ -116,7 +149,6 @@ void moth_sense()
     const byte DATA_LEN = 12;
     bool state = false;
     state = digitalRead(SENSOR);
-    //TODO remove second conditional
     if (!state) {
         Debugln(F("\nMoth Sense"));
 
@@ -238,6 +270,12 @@ void transmitRun()
     Debugln(F("Transmit Done"));
 }
 
+/**
+ * Transmit moth data accumulated in the EEPROM
+ *
+ * \todo Add functionality to read from the EEPROM. (Will be implemented when 
+ *       the Arduino is able to read from two EEPROMs)
+ **/
 void transmit_moth()
 {
    Debugln(F("\nSend moth"));

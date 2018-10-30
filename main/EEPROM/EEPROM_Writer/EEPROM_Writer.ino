@@ -4,7 +4,7 @@
 //EEPROM ERASER
 
 void setup(){
-  byte mystr0[16] = "XXXXXXXXXXXXXXXX";
+  byte mystr0[16] = "XX22XX33XX44XX55";
   int adress = 0x000;
   
   Wire.begin();
@@ -12,7 +12,8 @@ void setup(){
 
   for(int i = 0; i < 128; i++)
   {
-    Serial.println("Writing to 0x000");
+    Serial.print("Writing to: ");
+    Serial.println(adress);
     EEP.write(adress, mystr0, sizeof(mystr0));
     adress = adress + 16;
     
@@ -23,5 +24,3 @@ void setup(){
 void loop()
 {
 }
-
-

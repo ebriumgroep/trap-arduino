@@ -36,9 +36,22 @@ char* GSMModule::executeAT(const char command[], int delays = 500,
     if (strlen(search) != 0 && 
             (strstr(search, buffer) != NULL || 
              strstr(buffer, search) != NULL)) {
-        if (strstr(buffer, "CONNECT") || strstr(buffer, "OK")) {
+/*        if (strstr(buffer, "CONNECT") || strstr(buffer, "OK")) {
+            char newBuf[BUFF_LEN];
+            memset(newBuf, 0, BUFF_LEN);
+            if (strstr(buffer, "CONNECT") > strstr(buffer, "OK")) {
+                strncpy(newBuf, strstr(buffer, "CONNECT"), BUFF_LEN - strlen(newBuf) - 1);
+            } else {
+                strncpy(newBuf, strstr(buffer, "OK"), BUFF_LEN - strlen(newBuf) - 1);
+            }
+            Debug(F("NEW: "));
+            Debugln(newBuf);
+            memset(buffer, 0, BUFF_LEN);
+            strncpy(buffer, newBuf, BUFF_LEN - 1);
+            modem->flush();
+            delay(600L);
             return buffer;
-        }
+        }*/
         int end_time = 10000 + millis();
         while (!modem->available() && end_time > millis()) {}
         delay(200);
